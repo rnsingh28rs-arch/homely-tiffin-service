@@ -11,9 +11,14 @@ export const RegistrationModal: React.FC = () => {
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
   const [city, setCity] = useState<CityLocation>('Greater Noida');
-  const [address, setAddress] = useState('');
+  
+  // 3-Tier Location State
+  const [areaLocation, setAreaLocation] = useState('');
+  const [addressDetails, setAddressDetails] = useState('');
   const [mapLocationUrl, setMapLocationUrl] = useState('');
   const [isLocating, setIsLocating] = useState(false);
+
+  // Plan Selection
   const [planType, setPlanType] = useState<'veg' | 'egg' | 'nonVeg'>('veg');
   const [mealSlot, setMealSlot] = useState<'Lunch' | 'Dinner' | 'Both (Lunch & Dinner)'>('Both (Lunch & Dinner)');
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
@@ -34,11 +39,16 @@ export const RegistrationModal: React.FC = () => {
 
   if (!isRegistrationOpen) return null;
 
-  const resetAndClose = () => {
+  const resetAndClose = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setStep('details');
     setCustomerName('');
     setPhone('');
-    setAddress('');
+    setAreaLocation('');
+    setAddressDetails('');
     setMapLocationUrl('');
     setCity('Greater Noida');
     setUtrNumber('');
@@ -51,7 +61,7 @@ export const RegistrationModal: React.FC = () => {
 
   const handleDetectGPSLocation = () => {
     if (!navigator.geolocation) {
-      alert('Geolocation is not supported by your browser.');
+      alert('Geolocation is not supported by your device browser.');
       return;
     }
     setIsLocating(true);
@@ -66,17 +76,18 @@ export const RegistrationModal: React.FC = () => {
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
           );
           const data = await res.json();
-          const detectedAddr = data.display_name || `Near (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`;
-          setAddress(detectedAddr);
+          if (data && data.display_name) {
+            setAreaLocation(data.address?.suburb || data.address?.neighbourhood || data.address?.road || 'Current GPS Area');
+          }
         } catch {
-          setAddress(`GPS Pin: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+          // graceful fallback
         } finally {
           setIsLocating(false);
         }
       },
       (err) => {
         setIsLocating(false);
-        alert('Please allow location permission to auto-detect your delivery address.');
+        alert('Please allow Location Permission in your browser to fetch GPS pin.');
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
@@ -134,15 +145,15 @@ export const RegistrationModal: React.FC = () => {
       return;
     }
 
-    const fullAddress = mapLocationUrl
-      ? `${address} [📍 Map: ${mapLocationUrl}] (Start Date: ${startDate})`
-      : `${address} (Start Date: ${startDate})`;
+    const compiledAddress = `Area/Gate: ${areaLocation} | Room/Flat: ${addressDetails} (Start Date: ${startDate})${
+      mapLocationUrl ? ` | 📍 Live Pin: ${mapLocationUrl}` : ''
+    }`;
 
     const order = createOrder({
       customerName,
       phone,
       city,
-      address: fullAddress,
+      address: compiledAddress,
       mealPlan: `${currentPlan.title}`,
       planType: 'Monthly',
       slot: mealSlot,
@@ -161,21 +172,27 @@ export const RegistrationModal: React.FC = () => {
   const cleanWa = config.whatsappNumber.replace(/[^0-9]/g, '');
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm overflow-y-auto">
-      <div className="relative w-full max-w-2xl bg-[#15231B] border border-[#2B4534] rounded-3xl p-6 sm:p-8 text-[#FAF7F2] shadow-2xl my-8">
-        
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm overflow-y-auto"
+      onClick={resetAndClose}
+    >
+      <div
+        className="relative w-full max-w-2xl bg-[#15231B] border border-[#2B4534] rounded-3xl p-6 sm:p-8 text-[#FAF7F2] shadow-2xl my-8"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Working Close Button */}
         <button
           type="button"
           onClick={resetAndClose}
-          className="absolute top-5 right-5 w-9 h-9 rounded-full bg-[#0F1A13] border border-[#243B2D] text-slate-400 hover:text-white flex items-center justify-center transition hover:scale-105"
+          aria-label="Close"
+          className="absolute top-4 right-4 sm:top-5 sm:right-5 w-10 h-10 rounded-full bg-[#0F1A13] hover:bg-rose-500/20 text-slate-300 hover:text-rose-300 border border-[#243B2D] hover:border-rose-500/40 flex items-center justify-center text-lg font-bold transition shadow-lg z-30 cursor-pointer"
         >
           ✕
         </button>
 
         {step === 'details' && (
           <div>
-            <div className="text-center mb-6">
+            <div className="text-center mb-6 pr-6">
               <span className="px-3 py-1 bg-amber-500/20 border border-amber-500/30 text-amber-300 text-xs font-bold rounded-full uppercase">
                 📅 Monthly Subscription Booking
               </span>
@@ -186,8 +203,8 @@ export const RegistrationModal: React.FC = () => {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                if (!customerName || !phone || !address) {
-                  setErrorMessage('Please fill in Name, Phone and Delivery Address!');
+                if (!customerName || !phone || !areaLocation || !addressDetails) {
+                  setErrorMessage('Please fill in Name, Phone, Area/Gate and Room/Flat details!');
                   return;
                 }
                 setErrorMessage('');
@@ -195,8 +212,41 @@ export const RegistrationModal: React.FC = () => {
               }}
               className="space-y-4"
             >
+              {/* City Selection */}
               <div>
-                <label className="block text-xs font-bold text-amber-300 uppercase mb-2">1. Select Monthly Plan</label>
+                <label className="block text-xs font-bold text-amber-300 uppercase mb-2">1. Select City / Zone</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setCity('Greater Noida')}
+                    className={`p-3 rounded-2xl border text-left transition ${
+                      city === 'Greater Noida'
+                        ? 'bg-emerald-500/20 border-emerald-400 text-white font-bold'
+                        : 'bg-[#0F1A13] border-[#243B2D] text-slate-300'
+                    }`}
+                  >
+                    <div className="text-xs font-bold text-emerald-300">🏢 Greater Noida</div>
+                    <div className="text-[10px] text-emerald-400 font-semibold mt-0.5">Free Daily Delivery (₹0)</div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setCity('Noida')}
+                    className={`p-3 rounded-2xl border text-left transition ${
+                      city === 'Noida'
+                        ? 'bg-amber-500/20 border-amber-400 text-white font-bold'
+                        : 'bg-[#0F1A13] border-[#243B2D] text-slate-300'
+                    }`}
+                  >
+                    <div className="text-xs font-bold text-amber-300">🌆 Noida (Extended)</div>
+                    <div className="text-[10px] text-amber-400 font-semibold mt-0.5">Daily Scheduled Route</div>
+                  </button>
+                </div>
+              </div>
+
+              {/* Plan Choice */}
+              <div>
+                <label className="block text-xs font-bold text-amber-300 uppercase mb-2">2. Choose Monthly Plan</label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <button
                     type="button"
@@ -209,7 +259,7 @@ export const RegistrationModal: React.FC = () => {
                   >
                     <div className="text-xs font-bold text-emerald-300">🌱 Pure Veg</div>
                     <div className="text-lg font-black text-amber-400 mt-1">₹{config.packages?.veg?.monthlyPrice || 2999}</div>
-                    <div className="text-[10px] text-slate-400 mt-1">30 Days • Daily Delivery</div>
+                    <div className="text-[10px] text-slate-400 mt-1">30 Days • Daily Meal</div>
                   </button>
 
                   <button
@@ -242,6 +292,7 @@ export const RegistrationModal: React.FC = () => {
                 </div>
               </div>
 
+              {/* Slot & Start Date */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-emerald-200 mb-1">Meal Preference</label>
@@ -266,7 +317,8 @@ export const RegistrationModal: React.FC = () => {
                 </div>
               </div>
 
-              <div className="space-y-3 pt-1">
+              {/* Customer Contact */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                 <div>
                   <label className="block text-xs font-bold text-emerald-200 mb-1">Full Name *</label>
                   <input
@@ -290,41 +342,68 @@ export const RegistrationModal: React.FC = () => {
                     className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-sm text-white font-mono outline-none"
                   />
                 </div>
+              </div>
+
+              {/* 3-Tier Location & Address System */}
+              <div className="space-y-3 pt-1 bg-[#0F1A13] p-3.5 rounded-2xl border border-[#243B2D]">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-amber-300 uppercase flex items-center gap-1.5">
+                    <span>📍</span> Daily Delivery Location
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleDetectGPSLocation}
+                    disabled={isLocating}
+                    className="px-2.5 py-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 rounded-lg text-[11px] font-bold flex items-center gap-1 transition cursor-pointer"
+                  >
+                    <span>🛰️</span>
+                    <span>{isLocating ? 'Detecting GPS...' : 'Fetch Live GPS Pin'}</span>
+                  </button>
+                </div>
 
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="text-xs font-bold text-emerald-200">College / Hostel / Delivery Address *</label>
-                    <button
-                      type="button"
-                      onClick={handleDetectGPSLocation}
-                      disabled={isLocating}
-                      className="px-2.5 py-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 rounded-lg text-[11px] font-bold flex items-center gap-1 transition"
-                    >
-                      <span>📍</span>
-                      <span>{isLocating ? 'Detecting GPS...' : 'Use My Live GPS Location'}</span>
-                    </button>
-                  </div>
-                  <textarea
-                    rows={2}
+                  <label className="block text-[11px] font-bold text-slate-300 mb-1">
+                    University / College Gate / Sector / Landmark *
+                  </label>
+                  <input
+                    type="text"
                     required
-                    placeholder="e.g. Galgotias University Gate 2, Zenith Hostel Room 410"
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2 text-sm text-white outline-none resize-none"
+                    placeholder="e.g. Galgotias Gate 2 / Sharda Gate 3 / Knowledge Park III"
+                    value={areaLocation}
+                    onChange={(e) => setAreaLocation(e.target.value)}
+                    className="w-full bg-[#18271E] border border-[#2B4534] rounded-xl px-3 py-2 text-xs text-white outline-none"
                   />
-                  {mapLocationUrl && (
-                    <div className="mt-1 flex items-center gap-2 text-[11px] text-emerald-300">
-                      <span>✅ Live GPS Pin attached</span>
-                      <a href={mapLocationUrl} target="_blank" rel="noreferrer" className="underline text-amber-300">
-                        View on Google Maps ↗
-                      </a>
-                    </div>
-                  )}
                 </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-300 mb-1">
+                    Hostel Name / Room No. / Flat & Tower Details *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Zenith Hostel Room 410 / Tower B Flat 302"
+                    value={addressDetails}
+                    onChange={(e) => setAddressDetails(e.target.value)}
+                    className="w-full bg-[#18271E] border border-[#2B4534] rounded-xl px-3 py-2 text-xs text-white outline-none"
+                  />
+                </div>
+
+                {mapLocationUrl && (
+                  <div className="p-2 bg-emerald-500/10 border border-emerald-500/30 rounded-xl flex items-center justify-between text-[11px] text-emerald-300">
+                    <span className="flex items-center gap-1 font-semibold">
+                      <span>✅</span> Live GPS Pin Attached
+                    </span>
+                    <a href={mapLocationUrl} target="_blank" rel="noreferrer" className="underline text-amber-300 font-bold">
+                      Open Map Pin ↗
+                    </a>
+                  </div>
+                )}
               </div>
 
               {errorMessage && <p className="text-rose-400 text-xs font-bold text-center">{errorMessage}</p>}
 
+              {/* Total & Proceed */}
               <div className="pt-3 border-t border-[#243B2D] flex items-center justify-between">
                 <div>
                   <span className="text-xs text-slate-400 block">Monthly Total</span>
@@ -333,7 +412,7 @@ export const RegistrationModal: React.FC = () => {
 
                 <button
                   type="submit"
-                  className="px-6 py-3 bg-gradient-to-r from-[#D97706] to-[#F59E0B] text-[#111A14] font-black rounded-xl shadow-lg hover:brightness-110 transition flex items-center gap-2 text-sm"
+                  className="px-6 py-3 bg-gradient-to-r from-[#D97706] to-[#F59E0B] text-[#111A14] font-black rounded-xl shadow-lg hover:brightness-110 transition flex items-center gap-2 text-sm cursor-pointer"
                 >
                   Proceed to Payment ➔
                 </button>
@@ -342,10 +421,11 @@ export const RegistrationModal: React.FC = () => {
           </div>
         )}
 
+        {/* STEP 2: UPI PAYMENT & SLIP UPLOAD */}
         {step === 'payment' && (
           <div>
-            <div className="text-center mb-5">
-              <span className="px-3 py-1 bg-amber-500/20 border border-amber-500/30 text-amber-300 text-xs font-bold rounded-full">
+            <div className="text-center mb-5 pr-6">
+              <span className="px-3 py-1 bg-amber-500/20 border border-amber-500/30 text-amber-300 text-xs font-bold rounded-full uppercase">
                 💳 Step 2: Subscription UPI Payment
               </span>
               <h2 className="text-xl font-black text-white mt-1">Pay ₹{totalAmount} via UPI</h2>
@@ -375,7 +455,7 @@ export const RegistrationModal: React.FC = () => {
                       navigator.clipboard.writeText(config.upiId);
                       alert('UPI ID Copied!');
                     }}
-                    className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded font-bold"
+                    className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded font-bold cursor-pointer"
                   >
                     Copy
                   </button>
@@ -406,7 +486,7 @@ export const RegistrationModal: React.FC = () => {
                 <label className="block text-xs font-bold text-emerald-200 mb-1.5">
                   📸 Upload Payment Receipt / Screenshot
                 </label>
-                <div className="border border-[#2B4534] rounded-2xl p-4 bg-[#0F1A13]">
+                <div className="border border-[#2B4534] rounded-2xl p-3 bg-[#0F1A13]">
                   <input
                     type="file"
                     accept="image/*"
@@ -428,7 +508,7 @@ export const RegistrationModal: React.FC = () => {
                           setPaymentSlip('');
                           setSlipFileName('');
                         }}
-                        className="text-xs text-rose-400 hover:text-rose-300 font-bold px-2 py-1"
+                        className="text-xs text-rose-400 hover:text-rose-300 font-bold px-2 py-1 cursor-pointer"
                       >
                         Remove ✕
                       </button>
@@ -443,14 +523,14 @@ export const RegistrationModal: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setStep('details')}
-                  className="w-1/3 py-3 bg-[#0F1A13] hover:bg-[#1f3527] text-slate-300 font-bold text-xs rounded-xl border border-[#243B2D] transition"
+                  className="w-1/3 py-3 bg-[#0F1A13] hover:bg-[#1f3527] text-slate-300 font-bold text-xs rounded-xl border border-[#243B2D] transition cursor-pointer"
                 >
                   ← Back
                 </button>
 
                 <button
                   type="submit"
-                  className="w-2/3 py-3 bg-gradient-to-r from-[#D97706] to-[#F59E0B] text-[#111A14] font-black rounded-xl shadow-lg hover:brightness-110 transition flex items-center justify-center gap-2 text-sm"
+                  className="w-2/3 py-3 bg-gradient-to-r from-[#D97706] to-[#F59E0B] text-[#111A14] font-black rounded-xl shadow-lg hover:brightness-110 transition flex items-center justify-center gap-2 text-sm cursor-pointer"
                 >
                   <span>✅</span>
                   <span>Submit Subscription</span>
@@ -460,6 +540,7 @@ export const RegistrationModal: React.FC = () => {
           </div>
         )}
 
+        {/* STEP 3: SUCCESS CARD */}
         {step === 'success' && submittedOrder && (
           <div className="text-center py-4 space-y-4">
             <div className="w-16 h-16 bg-amber-500/20 border-2 border-amber-500/40 text-amber-400 rounded-full flex items-center justify-center mx-auto text-2xl animate-pulse">
@@ -508,7 +589,7 @@ export const RegistrationModal: React.FC = () => {
               <button
                 type="button"
                 onClick={resetAndClose}
-                className="w-full py-3 bg-[#0F1A13] hover:bg-[#1a2c20] text-slate-300 font-bold text-xs rounded-xl border border-[#243B2D] transition"
+                className="w-full py-3 bg-[#0F1A13] hover:bg-[#1a2c20] text-slate-300 font-bold text-xs rounded-xl border border-[#243B2D] transition cursor-pointer"
               >
                 Done / Close
               </button>
