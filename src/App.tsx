@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { TopBar } from './components/common/TopBar';
 import { Header } from './components/common/Header';
@@ -22,37 +22,66 @@ import { StaffNavBar } from './components/panels/StaffNavBar';
 import { AdminPanel } from './components/panels/AdminPanel';
 import { ManagerPanel } from './components/panels/ManagerPanel';
 import { ChefPanel } from './components/panels/ChefPanel';
+import { SuperAdminPanel } from './components/panels/SuperAdminPanel';
 import { MobileAppFrame } from './components/mobile/MobileAppFrame';
 
 const MainContent: React.FC = () => {
   const { activeRole, setActiveRole, openStaffLogin, authenticatedRoles } = useApp();
+  const [showSuperAdmin, setShowSuperAdmin] = useState<boolean>(false);
 
-  // Support direct route checking e.g. /admin in URL
+  // Check routes for Super Admin, Admin, Manager, Chef
   useEffect(() => {
-    const path = window.location.pathname.toLowerCase();
-    const hash = window.location.hash.toLowerCase();
-    const search = window.location.search.toLowerCase();
-    
-    if (path.includes('/admin') || hash.includes('admin') || search.includes('role=admin')) {
-      if (authenticatedRoles.admin) {
-        setActiveRole('admin');
+    const checkRoutes = () => {
+      const path = window.location.pathname.toLowerCase();
+      const hash = window.location.hash.toLowerCase();
+      const search = window.location.search.toLowerCase();
+
+      // Check Super Admin Route
+      if (path.includes('/superadmin') || hash.includes('superadmin') || search.includes('role=superadmin')) {
+        setShowSuperAdmin(true);
+        return;
       } else {
-        openStaffLogin('admin');
+        setShowSuperAdmin(false);
       }
-    } else if (path.includes('/manager') || hash.includes('manager') || search.includes('role=manager')) {
-      if (authenticatedRoles.manager) {
-        setActiveRole('manager');
-      } else {
-        openStaffLogin('manager');
+
+      // Check Staff Roles
+      if (path.includes('/admin') || hash.includes('admin') || search.includes('role=admin')) {
+        if (authenticatedRoles.admin) {
+          setActiveRole('admin');
+        } else {
+          openStaffLogin('admin');
+        }
+      } else if (path.includes('/manager') || hash.includes('manager') || search.includes('role=manager')) {
+        if (authenticatedRoles.manager) {
+          setActiveRole('manager');
+        } else {
+          openStaffLogin('manager');
+        }
+      } else if (path.includes('/chef') || hash.includes('chef') || search.includes('role=chef')) {
+        if (authenticatedRoles.chef) {
+          setActiveRole('chef');
+        } else {
+          openStaffLogin('chef');
+        }
       }
-    } else if (path.includes('/chef') || hash.includes('chef') || search.includes('role=chef')) {
-      if (authenticatedRoles.chef) {
-        setActiveRole('chef');
-      } else {
-        openStaffLogin('chef');
-      }
-    }
+    };
+
+    checkRoutes();
+    window.addEventListener('hashchange', checkRoutes);
+    return () => window.removeEventListener('hashchange', checkRoutes);
   }, [setActiveRole, openStaffLogin, authenticatedRoles]);
+
+  // Render Super Admin Panel if active
+  if (showSuperAdmin) {
+    return (
+      <SuperAdminPanel
+        onClose={() => {
+          window.location.hash = '';
+          setShowSuperAdmin(false);
+        }}
+      />
+    );
+  }
 
   return (
     <MobileAppFrame>
