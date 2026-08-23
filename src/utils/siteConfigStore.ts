@@ -1,22 +1,21 @@
 export interface DynamicDish {
   id: string;
   name: string;
-  category: "Veg" | "Egg" | "Non-Veg" | "Rice Combo" | "Snacks/Addon";
+  category: "Veg" | "Egg" | "Non-Veg";
   price: number;
-  items: string; // Description & included contents
+  items: string;
   imageUrl?: string;
-  badge?: string; // Best Seller, Chef Special, etc.
+  badge?: string;
   isAvailable: boolean;
 }
 
 export interface SiteConfig {
-  // Brand & Legal Compliance
   brandName: string;
   legalEntityName: string;
   fssaiNumber: string;
   gstNumber: string;
-  phone: string; // Calling Phone
-  whatsappNumber: string; // WhatsApp Business Number
+  phone: string;
+  whatsappNumber: string;
   email: string;
   kitchenAddress: string;
 
@@ -29,31 +28,29 @@ export interface SiteConfig {
   upiId: string;
   upiQrImage: string;
 
-  // Banner & Media
+  // Media
   heroBadge: string;
   heroHeadline: string;
   heroTagline: string;
   heroBannerImage: string;
   thaliImage: string;
 
-  // Dynamic Custom Dishes & Combos Engine
+  // Exactly 3 Core Daily Thalis
   dishes: DynamicDish[];
 
-  // Monthly Subscriptions
+  // Exactly 3 Monthly Subscriptions
   packages: {
     veg: { dailyPrice: number; monthlyPrice: number; description: string; itemsIncluded: string };
     egg: { dailyPrice: number; monthlyPrice: number; description: string; itemsIncluded: string };
     nonVeg: { dailyPrice: number; monthlyPrice: number; description: string; itemsIncluded: string };
   };
 
-  // Delivery & Operations
   deliverySlots: {
     lunchTime: string;
     dinnerTime: string;
   };
   deliveryLocations: string;
 
-  // Security Access PINs
   superAdminPin: string;
   adminPin: string;
   managerPin: string;
@@ -80,33 +77,24 @@ export const DEFAULT_CONFIG: SiteConfig = {
 
   heroBadge: "🔥 #1 Student & Office Tiffin Service in Greater Noida",
   heroHeadline: "Ghar Jaisa Swad, Roz Aapke Gate Par",
-  heroTagline: "Fresh, hygienic & authentic North Indian homemade meals cooked daily with premium ingredients and zero preservatives.",
+  heroTagline: "Fresh, hygienic & authentic homemade North Indian meals cooked daily with premium ingredients and zero preservatives.",
   heroBannerImage: "https://images.unsplash.com/photo-1613292443284-8d10ef9383fe?w=1920&auto=format&fit=crop&q=80",
   thaliImage: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=600&auto=format&fit=crop&q=80",
 
+  // ONLY 3 CORE THALIS
   dishes: [
     {
-      id: "dish-1",
-      name: "Mini Daily Veg Thali",
-      category: "Veg",
-      price: 89,
-      items: "3 Tawa Rotis + Dal Tadka + Seasonal Sabzi + Salad",
-      imageUrl: "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=600&auto=format&fit=crop&q=80",
-      badge: "Budget Friendly",
-      isAvailable: true,
-    },
-    {
-      id: "dish-2",
-      name: "Standard North Indian Thali",
+      id: "dish-veg",
+      name: "Standard North Indian Veg Thali",
       category: "Veg",
       price: 110,
-      items: "4 Butter Rotis + Special Sabzi + Dal Fry + Jeera Rice + Salad & Pickle",
+      items: "4 Butter Tawa Rotis + Special Sabzi + Dal Fry + Jeera Rice + Salad & Pickle",
       imageUrl: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=600&auto=format&fit=crop&q=80",
       badge: "Best Seller ⭐",
       isAvailable: true,
     },
     {
-      id: "dish-3",
+      id: "dish-egg",
       name: "Double Egg Curry Special Thali",
       category: "Egg",
       price: 130,
@@ -116,7 +104,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
       isAvailable: true,
     },
     {
-      id: "dish-4",
+      id: "dish-nonveg",
       name: "Homestyle Chicken Curry Thali",
       category: "Non-Veg",
       price: 160,
@@ -125,28 +113,9 @@ export const DEFAULT_CONFIG: SiteConfig = {
       badge: "Chef Special 🍗",
       isAvailable: true,
     },
-    {
-      id: "dish-5",
-      name: "Amritsari Chole Chawal Combo",
-      category: "Rice Combo",
-      price: 99,
-      items: "1 Bowl Spicy Amritsari Chole + Basmati Jeera Rice + Masala Onion Salad + Pickle",
-      imageUrl: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=600&auto=format&fit=crop&q=80",
-      badge: "Fast Delivery",
-      isAvailable: true,
-    },
-    {
-      id: "dish-6",
-      name: "Punjabi Rajma Rice Bowl",
-      category: "Rice Combo",
-      price: 99,
-      items: "Rich Punjabi Rajma + Steamed Basmati Rice + Green Chutney & Salad",
-      imageUrl: "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=600&auto=format&fit=crop&q=80",
-      badge: "Student Favorite",
-      isAvailable: true,
-    },
   ],
 
+  // ONLY 3 MONTHLY PACKAGES
   packages: {
     veg: {
       dailyPrice: 110,
@@ -180,7 +149,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
   kitchenPin: "1234",
 };
 
-const CONFIG_KEY = "bmb_live_site_config_v6";
+const CONFIG_KEY = "bmb_live_site_config_v7";
 
 export const getSiteConfig = (): SiteConfig => {
   try {
