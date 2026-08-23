@@ -4,7 +4,7 @@ export interface DynamicDish {
   category: "Veg" | "Egg" | "Non-Veg";
   price: number;
   items: string;
-  imageUrl?: string;
+  imageUrl: string;
   badge?: string;
   isAvailable: boolean;
 }
@@ -19,6 +19,7 @@ export interface SiteConfig {
   email: string;
   kitchenAddress: string;
 
+  // Banking
   bankAccountName: string;
   bankAccountNumber: string;
   bankIfscCode: string;
@@ -27,16 +28,17 @@ export interface SiteConfig {
   upiId: string;
   upiQrImage: string;
 
+  // Media
   heroBadge: string;
   heroHeadline: string;
   heroTagline: string;
   heroBannerImage: string;
   thaliImage: string;
 
-  // ONLY 3 CORE THALIS (NO EXTRA DUMMY ITEMS)
+  // 3 Core Dishes with Default Rates ₹80, ₹100, ₹120
   dishes: DynamicDish[];
 
-  // ONLY 3 MONTHLY PACKAGES
+  // Monthly Subscriptions
   packages: {
     veg: { dailyPrice: number; monthlyPrice: number; description: string; itemsIncluded: string };
     egg: { dailyPrice: number; monthlyPrice: number; description: string; itemsIncluded: string };
@@ -79,7 +81,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
   heroBannerImage: "https://images.unsplash.com/photo-1613292443284-8d10ef9383fe?w=1920&auto=format&fit=crop&q=80",
   thaliImage: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=600&auto=format&fit=crop&q=80",
 
-  // STRICTLY 3 DISHES ONLY
+  // 3 CORE DISHES LOCKED WITH YOUR EXACT RATES & SAFE HD PHOTOS
   dishes: [
     {
       id: "dish-veg",
@@ -113,7 +115,6 @@ export const DEFAULT_CONFIG: SiteConfig = {
     },
   ],
 
-  // STRICTLY 3 PACKAGES ONLY
   packages: {
     veg: {
       dailyPrice: 80,
@@ -147,19 +148,28 @@ export const DEFAULT_CONFIG: SiteConfig = {
   kitchenPin: "1234",
 };
 
-// New version key clears all old dummy entries from browser memory
-const CONFIG_KEY = "bmb_live_site_config_v10_strict_clean";
+// PERMANENT STORAGE KEY (NEVER OVERWRITES USER EDITS ON REFRESH)
+const PERMANENT_STORAGE_KEY = "bmb_master_store_permanent_v100";
 
 export const getSiteConfig = (): SiteConfig => {
   try {
-    const saved = localStorage.getItem(CONFIG_KEY);
-    return saved ? { ...DEFAULT_CONFIG, ...JSON.parse(saved) } : DEFAULT_CONFIG;
+    const saved = localStorage.getItem(PERMANENT_STORAGE_KEY);
+    if (!saved) {
+      localStorage.setItem(PERMANENT_STORAGE_KEY, JSON.stringify(DEFAULT_CONFIG));
+      return DEFAULT_CONFIG;
+    }
+    const parsed = JSON.parse(saved);
+    // Ensure dishes array exists and fallback smoothly
+    if (!parsed.dishes || parsed.dishes.length === 0) {
+      parsed.dishes = DEFAULT_CONFIG.dishes;
+    }
+    return { ...DEFAULT_CONFIG, ...parsed };
   } catch {
     return DEFAULT_CONFIG;
   }
 };
 
 export const saveSiteConfig = (newConfig: SiteConfig): void => {
-  localStorage.setItem(CONFIG_KEY, JSON.stringify(newConfig));
+  localStorage.setItem(PERMANENT_STORAGE_KEY, JSON.stringify(newConfig));
   window.dispatchEvent(new Event("bmb_config_updated"));
 };
