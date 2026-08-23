@@ -1,178 +1,100 @@
-import React from 'react';
-import { Logo } from './Logo';
-import { useApp } from '../../context/AppContext';
-import { Phone, Mail, MapPin, ShieldCheck, Heart, ArrowRight, Lock } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { getSiteConfig } from '../../utils/siteConfigStore';
 
 export const Footer: React.FC = () => {
-  const { setActiveRole, setIsRegistrationOpen, setIsInstantOrderOpen, setIsWeeklyMenuOpen, openStaffLogin } = useApp();
+  const [config, setConfig] = useState(getSiteConfig());
+
+  useEffect(() => {
+    const handleUpdate = () => setConfig(getSiteConfig());
+    window.addEventListener('bmb_config_updated', handleUpdate);
+    return () => window.removeEventListener('bmb_config_updated', handleUpdate);
+  }, []);
+
+  const cleanWa = config.whatsappNumber.replace(/[^0-9]/g, '');
+  const cleanPhone = config.phone.replace(/[^0-9+]/g, '');
 
   return (
-    <footer className="bg-[#0A2A1B] text-[#E0EADF] pt-14 pb-8 border-t border-emerald-950" id="contact">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 pb-12 border-b border-emerald-900/60">
-          
-          {/* Column 1: Brand & Bio */}
-          <div className="space-y-4">
-            <Logo size="lg" variant="light" />
-            <p className="text-sm text-emerald-200/80 leading-relaxed">
-              Wholesome, hygienic, and authentic home-style tiffin delivery. Prepared with fresh ingredients, balanced nutrition, and delivered punctually to college gates and office desks.
+    <footer className="bg-[#111A14] text-[#FAF7F2] border-t border-[#243B2D] mt-auto">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          {/* Brand Info */}
+          <div className="space-y-3 md:col-span-1">
+            <h3 className="text-xl font-black text-white flex items-center gap-2">
+              <span className="text-[#F59E0B]">🍱</span> {config.brandName}
+            </h3>
+            <p className="text-xs text-emerald-200/70 leading-relaxed">
+              {config.heroTagline}
             </p>
-            <div className="pt-2 text-xs text-emerald-300 flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-[#F2C94C]" />
-              <span>FSSAI Certified • 100% Food Grade 5CP Trays</span>
+            <div className="pt-2">
+              <span className="text-[11px] text-amber-300 font-bold block">
+                🛡️ FSSAI Lic: {config.fssaiNumber}
+              </span>
+              <span className="text-[11px] text-emerald-300/80 font-mono block">
+                📑 GSTIN: {config.gstNumber}
+              </span>
             </div>
           </div>
 
-          {/* Column 2: Quick Links */}
+          {/* Quick Contact */}
           <div className="space-y-3">
-            <h4 className="text-white font-bold text-base tracking-wide uppercase font-serif-title">
-              Our Offerings
-            </h4>
-            <ul className="space-y-2 text-sm text-emerald-200/90">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-amber-300">Contact & Orders</h4>
+            <ul className="space-y-2 text-xs text-emerald-200/80">
               <li>
-                <button
-                  onClick={() => setIsRegistrationOpen(true)}
-                  className="hover:text-[#F2C94C] transition-colors flex items-center gap-1.5"
-                >
-                  <ArrowRight className="w-3.5 h-3.5 text-[#C88A24]" />
-                  <span>Veg Classic Plan (₹3,500/mo)</span>
-                </button>
+                <a href={`tel:${cleanPhone}`} className="hover:text-white transition flex items-center gap-1.5">
+                  <span>📞</span> {config.phone}
+                </a>
               </li>
               <li>
-                <button
-                  onClick={() => setIsRegistrationOpen(true)}
-                  className="hover:text-[#F2C94C] transition-colors flex items-center gap-1.5"
+                <a
+                  href={`https://wa.me/${cleanWa}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="hover:text-emerald-300 transition flex items-center gap-1.5"
                 >
-                  <ArrowRight className="w-3.5 h-3.5 text-[#C88A24]" />
-                  <span>Egg Delight Plan (₹4,000/mo)</span>
-                </button>
+                  <span>💬</span> WhatsApp: +{cleanWa}
+                </a>
               </li>
               <li>
-                <button
-                  onClick={() => setIsRegistrationOpen(true)}
-                  className="hover:text-[#F2C94C] transition-colors flex items-center gap-1.5"
-                >
-                  <ArrowRight className="w-3.5 h-3.5 text-[#C88A24]" />
-                  <span>Non-Veg Club (₹4,500/mo)</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => setIsInstantOrderOpen(true)}
-                  className="hover:text-[#F2C94C] transition-colors flex items-center gap-1.5"
-                >
-                  <ArrowRight className="w-3.5 h-3.5 text-[#C88A24]" />
-                  <span>Instant Thalis (From ₹80)</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => setIsWeeklyMenuOpen(true)}
-                  className="hover:text-[#F2C94C] transition-colors flex items-center gap-1.5"
-                >
-                  <ArrowRight className="w-3.5 h-3.5 text-[#C88A24]" />
-                  <span>Weekly 7-Day Rotational Menu</span>
-                </button>
+                <a href={`mailto:${config.email}`} className="hover:text-white transition flex items-center gap-1.5">
+                  <span>✉️</span> {config.email}
+                </a>
               </li>
             </ul>
           </div>
 
-          {/* Column 3: Delivery Model */}
+          {/* Delivery Gate Locations */}
           <div className="space-y-3">
-            <h4 className="text-white font-bold text-base tracking-wide uppercase font-serif-title">
-              Delivery Coverage
-            </h4>
-            <div className="text-xs text-emerald-200/90 space-y-2.5">
-              <div className="bg-[#124E33]/60 p-2.5 rounded-lg border border-emerald-800">
-                <span className="font-bold text-[#F2C94C] block">🎓 College Students</span>
-                Hot lunch delivered right at the College Front Gate before break time.
-              </div>
-              <div className="bg-[#124E33]/60 p-2.5 rounded-lg border border-emerald-800">
-                <span className="font-bold text-[#F2C94C] block">💼 Working Professionals</span>
-                Delivered directly to your Office Security Gate or Main Reception.
-              </div>
-              <div className="bg-[#124E33]/60 p-2.5 rounded-lg border border-emerald-800">
-                <span className="font-bold text-[#F2C94C] block">🏠 Dinner at Home</span>
-                Delivered to your registered society or flat doorstep.
-              </div>
-            </div>
-          </div>
-
-          {/* Column 4: Contact & Order Helpline */}
-          <div className="space-y-3">
-            <h4 className="text-white font-bold text-base tracking-wide uppercase font-serif-title">
-              Direct Helpline
-            </h4>
-            <p className="text-xs text-emerald-200/80">
-              For subscriptions, bulk catering, or menu queries:
+            <h4 className="text-xs font-bold uppercase tracking-wider text-amber-300">Delivery Areas</h4>
+            <p className="text-xs text-emerald-200/70 leading-relaxed">
+              {config.deliveryLocations}
             </p>
-            <div className="space-y-2 text-sm">
-              <a
-                href="tel:9004848984"
-                className="flex items-center gap-2 text-white hover:text-[#F2C94C] font-bold text-lg transition-colors"
-              >
-                <Phone className="w-5 h-5 text-[#F2C94C]" />
-                <span>+91 9004848984</span>
-              </a>
-              <div className="flex items-center gap-2 text-emerald-200 text-xs">
-                <Mail className="w-4 h-4 text-[#F2C94C]" />
-                <span>orders@bringmybite.in</span>
-              </div>
-              <div className="flex items-start gap-2 text-emerald-200 text-xs">
-                <MapPin className="w-4 h-4 text-[#F2C94C] shrink-0 mt-0.5" />
-                <span>Central Cloud Kitchen, Shree Foods Hub, Main IT & University Zone</span>
-              </div>
+            <div className="text-[11px] text-emerald-300/60 pt-1">
+              <p>🍱 Lunch: {config.deliverySlots.lunchTime}</p>
+              <p>🌙 Dinner: {config.deliverySlots.dinnerTime}</p>
             </div>
           </div>
 
-        </div>
-
-        {/* Official Banking & UPI Verification Strip */}
-        <div className="my-8 p-4 bg-emerald-950/70 rounded-2xl border border-emerald-800/80 flex flex-col md:flex-row items-center justify-between gap-4 text-xs">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#C88A24]/20 border border-[#C88A24]/40 flex items-center justify-center text-[#F2C94C] shrink-0 font-bold text-base">
-              ₹
-            </div>
-            <div>
-              <div className="text-white font-bold flex items-center gap-2">
-                <span>Official Axis Bank Account: Quality Pan</span>
-                <span className="bg-emerald-800 text-[#F2C94C] text-[10px] px-2 py-0.5 rounded font-mono">100% Prepaid</span>
-              </div>
-              <p className="text-emerald-300/80 text-[11px]">
-                A/C: <span className="font-mono text-white">922020048876624</span> • IFSC: <span className="font-mono text-white">UTIB0000624</span> • Signatory: Rahul Narendra Singh
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="text-right">
-              <span className="text-[10px] uppercase tracking-wider text-emerald-400 block font-bold">Official UPI VPA</span>
-              <span className="font-mono font-bold text-white text-xs bg-emerald-900/90 px-2.5 py-1 rounded-lg border border-emerald-700">
-                9004848984@axisbank
-              </span>
-            </div>
+          {/* Legal / Payment */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-amber-300">Official Kitchen</h4>
+            <p className="text-xs text-emerald-200/70 leading-relaxed">
+              {config.kitchenAddress}
+            </p>
+            <p className="text-[11px] text-emerald-300/60 font-mono">
+              Accepted UPI: {config.upiId}
+            </p>
           </div>
         </div>
 
-        {/* Bottom Bar & Hidden Portal Access for Admin / Manager / Chef */}
-        <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-emerald-400">
-          <div className="flex items-center gap-2">
-            <span>© {new Date().getFullYear()} Bring My Bite by Shree Foods. All rights reserved.</span>
-            <span>•</span>
-            <span className="flex items-center gap-1 text-emerald-300">
-              Made with <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" /> for good health.
-            </span>
-          </div>
-
-          {/* Discreet Authorized Staff Access */}
-          <div className="flex items-center gap-3 text-[11px] text-emerald-400/80">
-            <button
-              onClick={() => openStaffLogin('admin')}
-              className="flex items-center gap-1.5 bg-emerald-950/80 hover:bg-emerald-900 text-emerald-200 hover:text-white px-3 py-1.5 rounded-lg border border-emerald-800 transition-colors cursor-pointer"
-            >
-              <Lock className="w-3.5 h-3.5 text-[#F2C94C]" />
-              <span>Staff Portal Login</span>
-            </button>
+        <div className="mt-10 pt-6 border-t border-[#1F3326] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-emerald-300/50">
+          <p>© {new Date().getFullYear()} {config.legalEntityName}. All rights reserved.</p>
+          <div className="flex gap-4">
+            <a href="#superadmin" className="hover:text-amber-300 transition text-[11px]">
+              🔒 Super Admin
+            </a>
+            <a href="#admin" className="hover:text-amber-300 transition text-[11px]">
+              💼 Staff Login
+            </a>
           </div>
         </div>
       </div>
