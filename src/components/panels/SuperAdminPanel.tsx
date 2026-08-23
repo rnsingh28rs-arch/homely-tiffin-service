@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { getSiteConfig, saveSiteConfig, SiteConfig } from '../../utils/siteConfigStore';
+import { getSiteConfig, saveSiteConfig, SiteConfig, DEFAULT_CONFIG } from '../../utils/siteConfigStore';
 
 interface SuperAdminPanelProps {
   onClose?: () => void;
 }
+
+type TabType = 'brand' | 'pricing' | 'banking' | 'banners' | 'operations' | 'security';
 
 export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => {
   const [config, setConfig] = useState<SiteConfig>(getSiteConfig());
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [pinInput, setPinInput] = useState<string>('');
   const [pinError, setPinError] = useState<string>('');
-  const [saveMessage, setSaveMessage] = useState<string>('');
+  const [activeTab, setActiveTab] = useState<TabType>('brand');
+  const [saveToast, setSaveToast] = useState<string>('');
+  const [showPins, setShowPins] = useState<boolean>(false);
 
   useEffect(() => {
     setConfig(getSiteConfig());
@@ -22,71 +26,71 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
       setIsAuthenticated(true);
       setPinError('');
     } else {
-      setPinError('Galat PIN! Super Admin PIN enter karein.');
+      setPinError('Invalid Super Admin PIN. Default is 6655.');
     }
   };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     saveSiteConfig(config);
-    setSaveMessage('Saari settings aur prices successfully live save ho gayi hain!');
-    setTimeout(() => setSaveMessage(''), 4000);
+    setSaveToast('Saari details & prices website par live save ho gayi hain!');
+    setTimeout(() => setSaveToast(''), 4000);
   };
 
-  const handlePriceChange = (field: keyof SiteConfig['prices'], value: string) => {
-    const num = parseFloat(value) || 0;
-    setConfig((prev) => ({
-      ...prev,
-      prices: {
-        ...prev.prices,
-        [field]: num,
-      },
-    }));
+  const handleResetDefaults = () => {
+    if (window.confirm('Kya aap saari settings default value par reset karna chahte hain?')) {
+      setConfig(DEFAULT_CONFIG);
+      saveSiteConfig(DEFAULT_CONFIG);
+      setSaveToast('Settings reset to default!');
+      setTimeout(() => setSaveToast(''), 4000);
+    }
   };
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 text-white">
-        <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl">
-          <div className="text-center mb-6">
-            <div className="w-16 h-16 bg-amber-500/20 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl font-bold border border-amber-500/30">
+      <div className="min-h-screen bg-[#111A14] flex items-center justify-center p-4 text-[#FAF7F2]">
+        <div className="max-w-md w-full bg-[#18261E] border border-[#D97706]/30 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+          <div className="absolute -top-12 -right-12 w-36 h-36 bg-[#D97706]/10 rounded-full blur-2xl"></div>
+          
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-gradient-to-tr from-[#B45309] to-[#F59E0B] text-white rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl shadow-lg shadow-[#D97706]/20">
               👑
             </div>
-            <h2 className="text-2xl font-bold">Super Admin Portal</h2>
-            <p className="text-slate-400 text-sm mt-1">Master PIN daal kar access karein</p>
+            <h2 className="text-2xl font-black tracking-tight text-white">Super Admin Portal</h2>
+            <p className="text-emerald-300/70 text-xs mt-1">Master Control Center • Bring My Bite</p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-5">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-                Super Admin PIN (Default: 6655)
+              <label className="block text-xs font-bold text-amber-300 uppercase tracking-wider mb-2">
+                Enter Master PIN (Default: 6655)
               </label>
               <input
                 type="password"
                 maxLength={8}
                 value={pinInput}
                 onChange={(e) => setPinInput(e.target.value)}
-                placeholder="PIN enter karein"
-                className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-center text-xl tracking-widest focus:outline-none focus:border-amber-500"
+                placeholder="••••"
+                className="w-full px-4 py-3.5 bg-[#0F1A13] border border-[#23382B] focus:border-[#F59E0B] rounded-2xl text-white text-center text-2xl tracking-[0.4em] outline-none transition"
                 autoFocus
               />
-              {pinError && <p className="text-red-400 text-xs mt-2 text-center">{pinError}</p>}
+              {pinError && <p className="text-rose-400 text-xs font-medium mt-2 text-center">{pinError}</p>}
             </div>
 
             <button
               type="submit"
-              className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl transition shadow-lg shadow-amber-500/20"
+              className="w-full py-3.5 bg-gradient-to-r from-[#D97706] to-[#F59E0B] hover:brightness-110 text-[#111A14] font-black rounded-2xl shadow-xl shadow-[#D97706]/25 transition"
             >
-              Unlock Full Control Center
+              Unlock Control Center
             </button>
 
             {onClose && (
               <button
                 type="button"
                 onClick={onClose}
-                className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-400 text-sm rounded-xl transition"
+                className="w-full py-2.5 bg-[#0F1A13] hover:bg-[#23382B] text-emerald-200/80 text-xs font-semibold rounded-xl transition"
               >
-                Website Par Wapas Jayein
+                Back to Website
               </button>
             )}
           </form>
@@ -96,341 +100,820 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-4 sm:p-8">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-1 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-full text-xs font-bold">
-                👑 Super Admin Master
-              </span>
-              <h1 className="text-2xl font-black">Bring My Bite Control Center</h1>
+    <div className="min-h-screen bg-[#0E1712] text-[#FAF7F2] flex flex-col font-sans">
+      {/* Top Header */}
+      <header className="bg-[#15231B] border-b border-[#243B2D] sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-tr from-[#D97706] to-[#F59E0B] rounded-xl flex items-center justify-center text-xl shadow-md">
+              👑
             </div>
-            <p className="text-slate-400 text-sm mt-1">Live Pricing, Packages, Payments, Images & Security PINs</p>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-lg font-black tracking-tight text-white">Bring My Bite Master CMS</h1>
+                <span className="px-2 py-0.5 bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-bold rounded-full uppercase">
+                  Super Admin Live
+                </span>
+              </div>
+              <p className="text-emerald-300/60 text-xs">Dynamic pricing, compliance, media, UPI & security controls</p>
+            </div>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleResetDefaults}
+              type="button"
+              className="px-3.5 py-2 bg-[#203326] hover:bg-[#2a4533] text-emerald-200 text-xs font-semibold rounded-xl transition"
+            >
+              Reset Defaults
+            </button>
             <button
               onClick={() => setIsAuthenticated(false)}
-              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-sm transition"
+              className="px-3.5 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-semibold rounded-xl transition"
             >
-              Lock Panel
+              Lock
             </button>
             {onClose && (
               <button
                 onClick={onClose}
-                className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl text-sm transition"
+                className="px-4 py-2 bg-gradient-to-r from-[#D97706] to-[#F59E0B] text-[#111A14] text-xs font-black rounded-xl shadow-md transition"
               >
-                Go to Website
+                View Live Site ↗
               </button>
             )}
           </div>
         </div>
 
-        {saveMessage && (
-          <div className="mt-4 p-4 bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 rounded-xl text-sm font-medium">
-            ✅ {saveMessage}
+        {/* Tab Navigation */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex gap-2 overflow-x-auto py-2.5 border-t border-[#1F3326] scrollbar-none">
+          {[
+            { id: 'brand', label: '🏢 Brand & Legal (FSSAI/GST)', icon: '🏛️' },
+            { id: 'pricing', label: '🍱 Meal Plans & Subscriptions', icon: '💰' },
+            { id: 'banking', label: '💳 Banking & UPI QR', icon: '🏦' },
+            { id: 'banners', label: '🎨 Banners & Images', icon: '🖼️' },
+            { id: 'operations', label: '🚚 Gates & Timings', icon: '⏰' },
+            { id: 'security', label: '🔒 Staff Access PINs', icon: '🔑' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as TabType)}
+              className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition flex items-center gap-2 ${
+                activeTab === tab.id
+                  ? 'bg-gradient-to-r from-[#D97706] to-[#F59E0B] text-[#111A14] shadow-md'
+                  : 'bg-[#18271E] text-emerald-200/80 hover:bg-[#23382B]'
+              }`}
+            >
+              <span>{tab.icon}</span>
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </header>
+
+      {/* Main Content Area */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex-1 w-full">
+        {saveToast && (
+          <div className="mb-6 p-4 bg-emerald-500/20 border border-emerald-500/40 text-emerald-200 rounded-2xl text-xs font-bold flex items-center gap-3">
+            <span className="text-base">✅</span>
+            <span>{saveToast}</span>
           </div>
         )}
 
-        <form onSubmit={handleSave} className="mt-6 space-y-6">
-          {/* Section 1: Business & Payment Info */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-            <h3 className="text-lg font-bold text-amber-400 mb-4 flex items-center gap-2">
-              💳 Business & Payment Information
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <form onSubmit={handleSave} className="space-y-6">
+          {/* TAB 1: BRAND & LEGAL (FSSAI, GST, CONTACTS) */}
+          {activeTab === 'brand' && (
+            <div className="bg-[#15231B] border border-[#243B2D] rounded-3xl p-6 sm:p-8 space-y-6">
               <div>
-                <label className="block text-xs text-slate-400 mb-1 font-semibold">UPI ID (VPA)</label>
-                <input
-                  type="text"
-                  value={config.upiId}
-                  onChange={(e) => setConfig({ ...config, upiId: e.target.value })}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-white font-mono"
-                />
+                <h3 className="text-base font-black text-amber-300 flex items-center gap-2">
+                  🏛️ Brand Identity & Government Compliance
+                </h3>
+                <p className="text-emerald-300/60 text-xs mt-0.5">Website footer, invoice headers aur legal disclaimer data</p>
               </div>
-              <div>
-                <label className="block text-xs text-slate-400 mb-1 font-semibold">WhatsApp Number</label>
-                <input
-                  type="text"
-                  value={config.whatsappNumber}
-                  onChange={(e) => setConfig({ ...config, whatsappNumber: e.target.value })}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-white"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-slate-400 mb-1 font-semibold">Display Phone</label>
-                <input
-                  type="text"
-                  value={config.phone}
-                  onChange={(e) => setConfig({ ...config, phone: e.target.value })}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-white"
-                />
-              </div>
-              <div className="sm:col-span-2">
-                <label className="block text-xs text-slate-400 mb-1 font-semibold">Support Email</label>
-                <input
-                  type="email"
-                  value={config.email}
-                  onChange={(e) => setConfig({ ...config, email: e.target.value })}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-white"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-slate-400 mb-1 font-semibold">Delivery Charge (₹)</label>
-                <input
-                  type="number"
-                  value={config.prices.deliveryCharge}
-                  onChange={(e) => handlePriceChange('deliveryCharge', e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-white font-bold"
-                />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+                <div>
+                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Brand Display Name</label>
+                  <input
+                    type="text"
+                    value={config.brandName}
+                    onChange={(e) => setConfig({ ...config, brandName: e.target.value })}
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] focus:border-[#F59E0B] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Legal Company Name</label>
+                  <input
+                    type="text"
+                    value={config.legalEntityName}
+                    onChange={(e) => setConfig({ ...config, legalEntityName: e.target.value })}
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] focus:border-[#F59E0B] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-amber-300 mb-1.5">FSSAI License Number</label>
+                  <input
+                    type="text"
+                    value={config.fssaiNumber}
+                    onChange={(e) => setConfig({ ...config, fssaiNumber: e.target.value })}
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] focus:border-[#F59E0B] rounded-xl px-3.5 py-2.5 text-sm text-amber-300 font-mono font-bold outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-amber-300 mb-1.5">GST Registration No.</label>
+                  <input
+                    type="text"
+                    value={config.gstNumber}
+                    onChange={(e) => setConfig({ ...config, gstNumber: e.target.value })}
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] focus:border-[#F59E0B] rounded-xl px-3.5 py-2.5 text-sm text-amber-300 font-mono font-bold outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Customer Support Phone</label>
+                  <input
+                    type="text"
+                    value={config.phone}
+                    onChange={(e) => setConfig({ ...config, phone: e.target.value })}
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] focus:border-[#F59E0B] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">WhatsApp Order Number</label>
+                  <input
+                    type="text"
+                    value={config.whatsappNumber}
+                    onChange={(e) => setConfig({ ...config, whatsappNumber: e.target.value })}
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] focus:border-[#F59E0B] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Official Support Email</label>
+                  <input
+                    type="email"
+                    value={config.email}
+                    onChange={(e) => setConfig({ ...config, email: e.target.value })}
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] focus:border-[#F59E0B] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
+                  />
+                </div>
+
+                <div className="sm:col-span-3">
+                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Kitchen / Headquarters Address</label>
+                  <input
+                    type="text"
+                    value={config.kitchenAddress}
+                    onChange={(e) => setConfig({ ...config, kitchenAddress: e.target.value })}
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] focus:border-[#F59E0B] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
+                  />
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Section 2: Complete Meal Pricing */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-            <h3 className="text-lg font-bold text-amber-400 mb-4 flex items-center gap-2">
-              💰 Live Meal & Subscription Pricing (₹)
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-800">
-                <span className="text-xs font-bold text-emerald-400 uppercase">🌱 Pure Veg</span>
-                <div className="mt-2 space-y-2">
+          {/* TAB 2: MEAL PLANS & PRICING */}
+          {activeTab === 'pricing' && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Veg Package */}
+                <div className="bg-[#15231B] border border-emerald-500/30 rounded-3xl p-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="px-3 py-1 bg-emerald-500/20 text-emerald-300 font-bold text-xs rounded-full border border-emerald-500/40">
+                      🌱 Pure Veg Plan
+                    </span>
+                  </div>
                   <div>
-                    <label className="text-[11px] text-slate-400">Daily Meal (₹)</label>
+                    <label className="block text-[11px] font-bold text-emerald-300 mb-1">Daily Meal Price (₹)</label>
                     <input
                       type="number"
-                      value={config.prices.vegDaily}
-                      onChange={(e) => handlePriceChange('vegDaily', e.target.value)}
-                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white font-bold text-sm"
+                      value={config.packages.veg.dailyPrice}
+                      onChange={(e) =>
+                        setConfig({
+                          ...config,
+                          packages: {
+                            ...config.packages,
+                            veg: { ...config.packages.veg, dailyPrice: parseFloat(e.target.value) || 0 },
+                          },
+                        })
+                      }
+                      className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3 py-2 text-white font-bold"
                     />
                   </div>
                   <div>
-                    <label className="text-[11px] text-slate-400">Monthly Plan (₹)</label>
+                    <label className="block text-[11px] font-bold text-emerald-300 mb-1">Monthly Subscription (₹)</label>
                     <input
                       type="number"
-                      value={config.prices.vegMonthly}
-                      onChange={(e) => handlePriceChange('vegMonthly', e.target.value)}
-                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white font-bold text-sm"
+                      value={config.packages.veg.monthlyPrice}
+                      onChange={(e) =>
+                        setConfig({
+                          ...config,
+                          packages: {
+                            ...config.packages,
+                            veg: { ...config.packages.veg, monthlyPrice: parseFloat(e.target.value) || 0 },
+                          },
+                        })
+                      }
+                      className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3 py-2 text-white font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-emerald-300 mb-1">Short Description</label>
+                    <input
+                      type="text"
+                      value={config.packages.veg.description}
+                      onChange={(e) =>
+                        setConfig({
+                          ...config,
+                          packages: {
+                            ...config.packages,
+                            veg: { ...config.packages.veg, description: e.target.value },
+                          },
+                        })
+                      }
+                      className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3 py-2 text-xs text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-emerald-300 mb-1">Items Included</label>
+                    <textarea
+                      rows={2}
+                      value={config.packages.veg.itemsIncluded}
+                      onChange={(e) =>
+                        setConfig({
+                          ...config,
+                          packages: {
+                            ...config.packages,
+                            veg: { ...config.packages.veg, itemsIncluded: e.target.value },
+                          },
+                        })
+                      }
+                      className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3 py-2 text-xs text-white resize-none"
+                    />
+                  </div>
+                </div>
+
+                {/* Egg Package */}
+                <div className="bg-[#15231B] border border-amber-500/30 rounded-3xl p-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="px-3 py-1 bg-amber-500/20 text-amber-300 font-bold text-xs rounded-full border border-amber-500/40">
+                      🍳 Egg Special Plan
+                    </span>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-amber-300 mb-1">Daily Meal Price (₹)</label>
+                    <input
+                      type="number"
+                      value={config.packages.egg.dailyPrice}
+                      onChange={(e) =>
+                        setConfig({
+                          ...config,
+                          packages: {
+                            ...config.packages,
+                            egg: { ...config.packages.egg, dailyPrice: parseFloat(e.target.value) || 0 },
+                          },
+                        })
+                      }
+                      className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3 py-2 text-white font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-amber-300 mb-1">Monthly Subscription (₹)</label>
+                    <input
+                      type="number"
+                      value={config.packages.egg.monthlyPrice}
+                      onChange={(e) =>
+                        setConfig({
+                          ...config,
+                          packages: {
+                            ...config.packages,
+                            egg: { ...config.packages.egg, monthlyPrice: parseFloat(e.target.value) || 0 },
+                          },
+                        })
+                      }
+                      className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3 py-2 text-white font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-amber-300 mb-1">Short Description</label>
+                    <input
+                      type="text"
+                      value={config.packages.egg.description}
+                      onChange={(e) =>
+                        setConfig({
+                          ...config,
+                          packages: {
+                            ...config.packages,
+                            egg: { ...config.packages.egg, description: e.target.value },
+                          },
+                        })
+                      }
+                      className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3 py-2 text-xs text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-amber-300 mb-1">Items Included</label>
+                    <textarea
+                      rows={2}
+                      value={config.packages.egg.itemsIncluded}
+                      onChange={(e) =>
+                        setConfig({
+                          ...config,
+                          packages: {
+                            ...config.packages,
+                            egg: { ...config.packages.egg, itemsIncluded: e.target.value },
+                          },
+                        })
+                      }
+                      className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3 py-2 text-xs text-white resize-none"
+                    />
+                  </div>
+                </div>
+
+                {/* Non-Veg Package */}
+                <div className="bg-[#15231B] border border-rose-500/30 rounded-3xl p-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="px-3 py-1 bg-rose-500/20 text-rose-300 font-bold text-xs rounded-full border border-rose-500/40">
+                      🍗 Non-Veg Plan
+                    </span>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-rose-300 mb-1">Daily Meal Price (₹)</label>
+                    <input
+                      type="number"
+                      value={config.packages.nonVeg.dailyPrice}
+                      onChange={(e) =>
+                        setConfig({
+                          ...config,
+                          packages: {
+                            ...config.packages,
+                            nonVeg: { ...config.packages.nonVeg, dailyPrice: parseFloat(e.target.value) || 0 },
+                          },
+                        })
+                      }
+                      className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3 py-2 text-white font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-rose-300 mb-1">Monthly Subscription (₹)</label>
+                    <input
+                      type="number"
+                      value={config.packages.nonVeg.monthlyPrice}
+                      onChange={(e) =>
+                        setConfig({
+                          ...config,
+                          packages: {
+                            ...config.packages,
+                            nonVeg: { ...config.packages.nonVeg, monthlyPrice: parseFloat(e.target.value) || 0 },
+                          },
+                        })
+                      }
+                      className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3 py-2 text-white font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-rose-300 mb-1">Short Description</label>
+                    <input
+                      type="text"
+                      value={config.packages.nonVeg.description}
+                      onChange={(e) =>
+                        setConfig({
+                          ...config,
+                          packages: {
+                            ...config.packages,
+                            nonVeg: { ...config.packages.nonVeg, description: e.target.value },
+                          },
+                        })
+                      }
+                      className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3 py-2 text-xs text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-rose-300 mb-1">Items Included</label>
+                    <textarea
+                      rows={2}
+                      value={config.packages.nonVeg.itemsIncluded}
+                      onChange={(e) =>
+                        setConfig({
+                          ...config,
+                          packages: {
+                            ...config.packages,
+                            nonVeg: { ...config.packages.nonVeg, itemsIncluded: e.target.value },
+                          },
+                        })
+                      }
+                      className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3 py-2 text-xs text-white resize-none"
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-800">
-                <span className="text-xs font-bold text-yellow-400 uppercase">🍳 Egg Special</span>
-                <div className="mt-2 space-y-2">
-                  <div>
-                    <label className="text-[11px] text-slate-400">Daily Meal (₹)</label>
-                    <input
-                      type="number"
-                      value={config.prices.eggDaily}
-                      onChange={(e) => handlePriceChange('eggDaily', e.target.value)}
-                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white font-bold text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[11px] text-slate-400">Monthly Plan (₹)</label>
-                    <input
-                      type="number"
-                      value={config.prices.eggMonthly}
-                      onChange={(e) => handlePriceChange('eggMonthly', e.target.value)}
-                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white font-bold text-sm"
-                    />
-                  </div>
+              {/* Extra: Trial & Delivery Charges */}
+              <div className="bg-[#15231B] border border-[#243B2D] rounded-3xl p-6 grid grid-cols-1 sm:grid-cols-3 gap-5">
+                <div>
+                  <label className="block text-xs font-bold text-indigo-300 mb-1.5">Trial Meal Rate (₹)</label>
+                  <input
+                    type="number"
+                    value={config.packages.trial.price}
+                    onChange={(e) =>
+                      setConfig({
+                        ...config,
+                        packages: {
+                          ...config.packages,
+                          trial: { ...config.packages.trial, price: parseFloat(e.target.value) || 0 },
+                        },
+                      })
+                    }
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-white font-bold text-sm"
+                  />
                 </div>
-              </div>
-
-              <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-800">
-                <span className="text-xs font-bold text-rose-400 uppercase">🍗 Non-Veg</span>
-                <div className="mt-2 space-y-2">
-                  <div>
-                    <label className="text-[11px] text-slate-400">Daily Meal (₹)</label>
-                    <input
-                      type="number"
-                      value={config.prices.nonVegDaily}
-                      onChange={(e) => handlePriceChange('nonVegDaily', e.target.value)}
-                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white font-bold text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[11px] text-slate-400">Monthly Plan (₹)</label>
-                    <input
-                      type="number"
-                      value={config.prices.nonVegMonthly}
-                      onChange={(e) => handlePriceChange('nonVegMonthly', e.target.value)}
-                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white font-bold text-sm"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Delivery Charge per Order (₹)</label>
+                  <input
+                    type="number"
+                    value={config.deliveryCharge}
+                    onChange={(e) => setConfig({ ...config, deliveryCharge: parseFloat(e.target.value) || 0 })}
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-white font-bold text-sm"
+                  />
                 </div>
-              </div>
-
-              <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-800">
-                <span className="text-xs font-bold text-indigo-400 uppercase">🍱 Trial Meal</span>
-                <div className="mt-2 space-y-2">
-                  <div>
-                    <label className="text-[11px] text-slate-400">Trial Meal Single (₹)</label>
-                    <input
-                      type="number"
-                      value={config.prices.trialMeal}
-                      onChange={(e) => handlePriceChange('trialMeal', e.target.value)}
-                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white font-bold text-sm"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Free Delivery Above (₹)</label>
+                  <input
+                    type="number"
+                    value={config.freeDeliveryAbove}
+                    onChange={(e) => setConfig({ ...config, freeDeliveryAbove: parseFloat(e.target.value) || 0 })}
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-white font-bold text-sm"
+                  />
                 </div>
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Section 3: Delivery Slots & Locations */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-            <h3 className="text-lg font-bold text-amber-400 mb-4 flex items-center gap-2">
-              🚚 Delivery Timing & Gate Locations
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* TAB 3: BANKING & UPI QR */}
+          {activeTab === 'banking' && (
+            <div className="bg-[#15231B] border border-[#243B2D] rounded-3xl p-6 sm:p-8 space-y-6">
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Lunch Delivery Window</label>
-                <input
-                  type="text"
-                  value={config.deliverySlots.lunchTime}
-                  onChange={(e) =>
-                    setConfig({
-                      ...config,
-                      deliverySlots: { ...config.deliverySlots, lunchTime: e.target.value },
-                    })
-                  }
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white"
-                />
+                <h3 className="text-base font-black text-amber-300 flex items-center gap-2">
+                  🏦 Bank Account & UPI Payment Destination
+                </h3>
+                <p className="text-emerald-300/60 text-xs mt-0.5">Yeh account customer order modal aur checkout screen me show hota hai</p>
               </div>
-              <div>
-                <label className="block text-xs text-slate-400 mb-1">Dinner Delivery Window</label>
-                <input
-                  type="text"
-                  value={config.deliverySlots.dinnerTime}
-                  onChange={(e) =>
-                    setConfig({
-                      ...config,
-                      deliverySlots: { ...config.deliverySlots, dinnerTime: e.target.value },
-                    })
-                  }
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white"
-                />
-              </div>
-              <div className="sm:col-span-2">
-                <label className="block text-xs text-slate-400 mb-1">Covered Gates / Colleges</label>
-                <input
-                  type="text"
-                  value={config.deliveryLocations}
-                  onChange={(e) => setConfig({ ...config, deliveryLocations: e.target.value })}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm"
-                />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+                <div>
+                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">UPI ID (VPA)</label>
+                  <input
+                    type="text"
+                    value={config.upiId}
+                    onChange={(e) => setConfig({ ...config, upiId: e.target.value })}
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] focus:border-[#F59E0B] rounded-xl px-3.5 py-2.5 text-sm text-amber-300 font-mono font-bold outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Account Beneficiary Name</label>
+                  <input
+                    type="text"
+                    value={config.bankAccountName}
+                    onChange={(e) => setConfig({ ...config, bankAccountName: e.target.value })}
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] focus:border-[#F59E0B] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Bank Account Number</label>
+                  <input
+                    type="text"
+                    value={config.bankAccountNumber}
+                    onChange={(e) => setConfig({ ...config, bankAccountNumber: e.target.value })}
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] focus:border-[#F59E0B] rounded-xl px-3.5 py-2.5 text-sm text-white font-mono outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">IFSC Code</label>
+                  <input
+                    type="text"
+                    value={config.bankIfscCode}
+                    onChange={(e) => setConfig({ ...config, bankIfscCode: e.target.value })}
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] focus:border-[#F59E0B] rounded-xl px-3.5 py-2.5 text-sm text-white font-mono uppercase outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Bank Name</label>
+                  <input
+                    type="text"
+                    value={config.bankName}
+                    onChange={(e) => setConfig({ ...config, bankName: e.target.value })}
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] focus:border-[#F59E0B] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Branch</label>
+                  <input
+                    type="text"
+                    value={config.bankBranch}
+                    onChange={(e) => setConfig({ ...config, bankBranch: e.target.value })}
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] focus:border-[#F59E0B] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
+                  />
+                </div>
+
+                <div className="sm:col-span-3">
+                  <label className="block text-xs font-bold text-amber-300 mb-1.5">UPI QR Code Image URL</label>
+                  <input
+                    type="text"
+                    value={config.upiQrImage}
+                    onChange={(e) => setConfig({ ...config, upiQrImage: e.target.value })}
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] focus:border-[#F59E0B] rounded-xl px-3.5 py-2.5 text-xs text-white font-mono outline-none"
+                  />
+                  {config.upiQrImage && (
+                    <div className="mt-3 flex items-center gap-4 p-3 bg-[#0F1A13] border border-[#243B2D] rounded-2xl w-fit">
+                      <img
+                        src={config.upiQrImage}
+                        alt="QR Preview"
+                        className="w-20 h-20 object-cover rounded-lg border border-emerald-500/20"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150?text=Invalid+Image';
+                        }}
+                      />
+                      <div className="text-xs text-emerald-200/70">
+                        <p className="font-bold text-white">Live QR Preview</p>
+                        <p className="text-[11px]">UPI: {config.upiId}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Section 4: Images & Branding URLs */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-            <h3 className="text-lg font-bold text-amber-400 mb-4 flex items-center gap-2">
-              🖼️ Live Photos & QR Code URLs
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="sm:col-span-2">
-                <label className="block text-xs text-slate-400 mb-1">UPI QR Code Image URL</label>
-                <input
-                  type="text"
-                  value={config.upiQrImage}
-                  onChange={(e) => setConfig({ ...config, upiQrImage: e.target.value })}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs font-mono"
-                />
-              </div>
+          {/* TAB 4: BANNERS & MEDIA */}
+          {activeTab === 'banners' && (
+            <div className="bg-[#15231B] border border-[#243B2D] rounded-3xl p-6 sm:p-8 space-y-6">
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Hero Banner Photo URL</label>
-                <input
-                  type="text"
-                  value={config.heroBannerImage}
-                  onChange={(e) => setConfig({ ...config, heroBannerImage: e.target.value })}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs font-mono"
-                />
+                <h3 className="text-base font-black text-amber-300 flex items-center gap-2">
+                  🖼️ Homepage Banners & Showcase Media
+                </h3>
+                <p className="text-emerald-300/60 text-xs mt-0.5">Hero top text, badges and dish photos across the website</p>
               </div>
-              <div>
-                <label className="block text-xs text-slate-400 mb-1">Thali Feature Photo URL</label>
-                <input
-                  type="text"
-                  value={config.thaliImage}
-                  onChange={(e) => setConfig({ ...config, thaliImage: e.target.value })}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs font-mono"
-                />
-              </div>
-              <div className="sm:col-span-2">
-                <label className="block text-xs text-slate-400 mb-1">Hero Tagline</label>
-                <input
-                  type="text"
-                  value={config.heroTagline}
-                  onChange={(e) => setConfig({ ...config, heroTagline: e.target.value })}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white"
-                />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Hero Top Badge Text</label>
+                  <input
+                    type="text"
+                    value={config.heroBadge}
+                    onChange={(e) => setConfig({ ...config, heroBadge: e.target.value })}
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Hero Main Headline</label>
+                  <input
+                    type="text"
+                    value={config.heroHeadline}
+                    onChange={(e) => setConfig({ ...config, heroHeadline: e.target.value })}
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Hero Sub-Tagline</label>
+                  <textarea
+                    rows={2}
+                    value={config.heroTagline}
+                    onChange={(e) => setConfig({ ...config, heroTagline: e.target.value })}
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none resize-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Hero Banner Image URL</label>
+                  <input
+                    type="text"
+                    value={config.heroBannerImage}
+                    onChange={(e) => setConfig({ ...config, heroBannerImage: e.target.value })}
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-xs text-white font-mono outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Main Showcase Thali Image URL</label>
+                  <input
+                    type="text"
+                    value={config.thaliImage}
+                    onChange={(e) => setConfig({ ...config, thaliImage: e.target.value })}
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-xs text-white font-mono outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Veg Thali Card Photo URL</label>
+                  <input
+                    type="text"
+                    value={config.vegThaliImage}
+                    onChange={(e) => setConfig({ ...config, vegThaliImage: e.target.value })}
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-xs text-white font-mono outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Non-Veg Thali Card Photo URL</label>
+                  <input
+                    type="text"
+                    value={config.nonVegThaliImage}
+                    onChange={(e) => setConfig({ ...config, nonVegThaliImage: e.target.value })}
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-xs text-white font-mono outline-none"
+                  />
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Section 5: Security PINs */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-            <h3 className="text-lg font-bold text-amber-400 mb-4 flex items-center gap-2">
-              🔒 Security & Portal PINs
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+          {/* TAB 5: OPERATIONS & GATES */}
+          {activeTab === 'operations' && (
+            <div className="bg-[#15231B] border border-[#243B2D] rounded-3xl p-6 sm:p-8 space-y-6">
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Super Admin PIN</label>
-                <input
-                  type="text"
-                  value={config.superAdminPin}
-                  onChange={(e) => setConfig({ ...config, superAdminPin: e.target.value })}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-amber-400 font-mono font-bold text-center"
-                />
+                <h3 className="text-base font-black text-amber-300 flex items-center gap-2">
+                  🚚 Delivery Gates & Shift Timings
+                </h3>
+                <p className="text-emerald-300/60 text-xs mt-0.5">Meal delivery windows, cutoff times and covered institutions</p>
               </div>
-              <div>
-                <label className="block text-xs text-slate-400 mb-1">Admin Panel PIN</label>
-                <input
-                  type="text"
-                  value={config.adminPin}
-                  onChange={(e) => setConfig({ ...config, adminPin: e.target.value })}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono text-center"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-slate-400 mb-1">Manager PIN</label>
-                <input
-                  type="text"
-                  value={config.managerPin}
-                  onChange={(e) => setConfig({ ...config, managerPin: e.target.value })}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono text-center"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-slate-400 mb-1">Kitchen Display PIN</label>
-                <input
-                  type="text"
-                  value={config.kitchenPin}
-                  onChange={(e) => setConfig({ ...config, kitchenPin: e.target.value })}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono text-center"
-                />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Lunch Delivery Window</label>
+                  <input
+                    type="text"
+                    value={config.deliverySlots.lunchTime}
+                    onChange={(e) =>
+                      setConfig({
+                        ...config,
+                        deliverySlots: { ...config.deliverySlots, lunchTime: e.target.value },
+                      })
+                    }
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Lunch Booking Cutoff Time</label>
+                  <input
+                    type="text"
+                    value={config.deliverySlots.lunchCutoff}
+                    onChange={(e) =>
+                      setConfig({
+                        ...config,
+                        deliverySlots: { ...config.deliverySlots, lunchCutoff: e.target.value },
+                      })
+                    }
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Dinner Delivery Window</label>
+                  <input
+                    type="text"
+                    value={config.deliverySlots.dinnerTime}
+                    onChange={(e) =>
+                      setConfig({
+                        ...config,
+                        deliverySlots: { ...config.deliverySlots, dinnerTime: e.target.value },
+                      })
+                    }
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Dinner Booking Cutoff Time</label>
+                  <input
+                    type="text"
+                    value={config.deliverySlots.dinnerCutoff}
+                    onChange={(e) =>
+                      setConfig({
+                        ...config,
+                        deliverySlots: { ...config.deliverySlots, dinnerCutoff: e.target.value },
+                      })
+                    }
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Covered Colleges / Hostels / Gates</label>
+                  <textarea
+                    rows={2}
+                    value={config.deliveryLocations}
+                    onChange={(e) => setConfig({ ...config, deliveryLocations: e.target.value })}
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none resize-none"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Order Form Confirmation Note</label>
+                  <input
+                    type="text"
+                    value={config.orderFormNote}
+                    onChange={(e) => setConfig({ ...config, orderFormNote: e.target.value })}
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
+                  />
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Sticky Submit Bar */}
-          <div className="sticky bottom-4 bg-slate-900/95 backdrop-blur border border-slate-800 p-4 rounded-2xl flex justify-end shadow-2xl">
+          {/* TAB 6: SECURITY PINS */}
+          {activeTab === 'security' && (
+            <div className="bg-[#15231B] border border-[#243B2D] rounded-3xl p-6 sm:p-8 space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-base font-black text-amber-300 flex items-center gap-2">
+                    🔒 Portal Passcodes & Access Control PINs
+                  </h3>
+                  <p className="text-emerald-300/60 text-xs mt-0.5">Staff aur administrative workspaces ke authentication PINs</p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowPins(!showPins)}
+                  className="px-3 py-1.5 bg-[#203326] text-emerald-300 text-xs font-bold rounded-xl border border-emerald-500/20"
+                >
+                  {showPins ? '🙈 Hide PINs' : '👁️ Reveal PINs'}
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
+                <div className="bg-[#0F1A13] p-4 rounded-2xl border border-amber-500/40">
+                  <span className="text-xs font-bold text-amber-300 uppercase">👑 Super Admin PIN</span>
+                  <input
+                    type={showPins ? 'text' : 'password'}
+                    value={config.superAdminPin}
+                    onChange={(e) => setConfig({ ...config, superAdminPin: e.target.value })}
+                    className="mt-2 w-full bg-[#18271E] border border-amber-500/40 rounded-xl px-3 py-2 text-center text-amber-300 font-mono font-black text-lg outline-none"
+                  />
+                  <p className="text-[10px] text-emerald-300/50 mt-1 text-center">Master full access</p>
+                </div>
+
+                <div className="bg-[#0F1A13] p-4 rounded-2xl border border-[#243B2D]">
+                  <span className="text-xs font-bold text-emerald-200 uppercase">💼 Admin Panel PIN</span>
+                  <input
+                    type={showPins ? 'text' : 'password'}
+                    value={config.adminPin}
+                    onChange={(e) => setConfig({ ...config, adminPin: e.target.value })}
+                    className="mt-2 w-full bg-[#18271E] border border-[#243B2D] rounded-xl px-3 py-2 text-center text-white font-mono font-bold text-lg outline-none"
+                  />
+                  <p className="text-[10px] text-emerald-300/50 mt-1 text-center">Orders & daily stats</p>
+                </div>
+
+                <div className="bg-[#0F1A13] p-4 rounded-2xl border border-[#243B2D]">
+                  <span className="text-xs font-bold text-emerald-200 uppercase">📋 Manager PIN</span>
+                  <input
+                    type={showPins ? 'text' : 'password'}
+                    value={config.managerPin}
+                    onChange={(e) => setConfig({ ...config, managerPin: e.target.value })}
+                    className="mt-2 w-full bg-[#18271E] border border-[#243B2D] rounded-xl px-3 py-2 text-center text-white font-mono font-bold text-lg outline-none"
+                  />
+                  <p className="text-[10px] text-emerald-300/50 mt-1 text-center">Deliveries & attendance</p>
+                </div>
+
+                <div className="bg-[#0F1A13] p-4 rounded-2xl border border-[#243B2D]">
+                  <span className="text-xs font-bold text-emerald-200 uppercase">👨‍🍳 Kitchen/Chef PIN</span>
+                  <input
+                    type={showPins ? 'text' : 'password'}
+                    value={config.kitchenPin}
+                    onChange={(e) => setConfig({ ...config, kitchenPin: e.target.value })}
+                    className="mt-2 w-full bg-[#18271E] border border-[#243B2D] rounded-xl px-3 py-2 text-center text-white font-mono font-bold text-lg outline-none"
+                  />
+                  <p className="text-[10px] text-emerald-300/50 mt-1 text-center">Live kitchen display</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Sticky Floating Save Bar */}
+          <div className="sticky bottom-6 bg-[#15231B]/95 backdrop-blur-md border border-[#2B4534] p-4 rounded-3xl shadow-2xl flex items-center justify-between">
+            <div className="hidden sm:flex items-center gap-2 text-xs text-emerald-300/70">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span>Changes reflect instantly on live website upon save</span>
+            </div>
+
             <button
               type="submit"
-              className="px-8 py-3.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl shadow-lg shadow-amber-500/20 transition flex items-center gap-2 text-base"
+              className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-[#D97706] to-[#F59E0B] hover:brightness-110 text-[#111A14] font-black rounded-2xl shadow-xl shadow-[#D97706]/20 transition flex items-center justify-center gap-2 text-sm"
             >
-              💾 Save All Live Changes
+              <span>💾</span>
+              <span>Save & Publish Live Changes</span>
             </button>
           </div>
         </form>
-      </div>
+      </main>
     </div>
   );
 };
