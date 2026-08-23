@@ -38,7 +38,6 @@ export const ChefChatBot: React.FC = () => {
     }
   }, [messages, isTyping, isOpen]);
 
-  // Initial Chef Greeting with Animated Avatar
   useEffect(() => {
     if (messages.length === 0) {
       const initialMsg: Message = {
@@ -47,7 +46,7 @@ export const ChefChatBot: React.FC = () => {
         text: `Namaste ji! 🙏 Main hoon **Chef Bitey** 👨‍🍳 Bring My Bite ka AI Kitchen Assistant!\n\nAaj kitchen me fresh aur pure desi ghee/mustard oil ka khana ban raha hai. Main aapki kya madad kar sakta hoon?`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         options: [
-          { label: '🍛 Aaj Ka Live Menu & Rates', action: 'menu' },
+          { label: '🍛 Aaj Ka Live Menu (₹80 / ₹100 / ₹120)', action: 'menu' },
           { label: '🔍 Track My Order Status', action: 'track' },
           { label: '📅 30-Day Monthly Tiffin Plans', action: 'subscriptions' },
           { label: '🚚 Delivery Areas & 30 Min ETA', action: 'delivery' },
@@ -70,7 +69,7 @@ export const ChefChatBot: React.FC = () => {
       const activeDishes = (config.dishes || []).filter((d) => d.isAvailable);
 
       if (query.includes('menu') || query.includes('khana') || query.includes('rate') || query.includes('dish') || query.includes('thali')) {
-        const dishList = activeDishes.map((d) => `• **${d.name}** (${d.category}): ₹${d.price}\n  _${d.items}_`).join('\n\n');
+        const dishList = activeDishes.map((d) => `• **${d.name}**: ₹${d.price}\n  _${d.items}_`).join('\n\n');
         botReplyText = `🍱 **Aaj Ka Freshly Cooked Menu:**\n\n${dishList}\n\n👉 Aap niche diye gaye button se direct plate book kar sakte hain!`;
         options = [
           { label: '⚡ Book Instant Thali Now', action: 'open_instant_modal' },
@@ -107,7 +106,7 @@ export const ChefChatBot: React.FC = () => {
           botReplyText = `🔍 Apna 10-digit **Mobile Number** ya **Order ID (jaise BMB-123456)** yahan type karein, main turant live status check karke batata hoon.`;
         }
       } else if (query.includes('subscription') || query.includes('monthly') || query.includes('package') || query.includes('mahina')) {
-        botReplyText = `📅 **30-Day Monthly Tiffin Subscriptions:**\n\n🌱 **Pure Veg Plan:** ₹${config.packages?.veg?.monthlyPrice || 2999} / Month\n🍳 **Egg Special Plan:** ₹${config.packages?.egg?.monthlyPrice || 3499} / Month\n🍗 **Chicken Special Plan:** ₹${config.packages?.nonVeg?.monthlyPrice || 4199} / Month\n\nRoz lunch aur dinner aapke college gate/hostel par garam deliver hota hai!`;
+        botReplyText = `📅 **30-Day Monthly Tiffin Subscriptions:**\n\n🌱 **Pure Veg Plan:** ₹${config.packages?.veg?.monthlyPrice || 2400} / Month\n🍳 **Egg Special Plan:** ₹${config.packages?.egg?.monthlyPrice || 2999} / Month\n🍗 **Chicken Special Plan:** ₹${config.packages?.nonVeg?.monthlyPrice || 3599} / Month\n\nRoz lunch aur dinner aapke college gate/hostel par garam deliver hota hai!`;
         options = [
           { label: '📝 Register Monthly Plan', action: 'open_reg_modal' },
           { label: '🍛 Order Daily Single Plate', action: 'open_instant_modal' },
@@ -150,7 +149,7 @@ export const ChefChatBot: React.FC = () => {
         },
       ]);
       setIsTyping(false);
-    }, 600);
+    }, 500);
   };
 
   const handleSend = (e: React.FormEvent) => {
@@ -205,11 +204,10 @@ export const ChefChatBot: React.FC = () => {
   const cleanWa = config.whatsappNumber.replace(/[^0-9]/g, '');
 
   return (
-    <div className="fixed bottom-5 right-5 z-50 font-sans">
-      {/* Floating Animated Chef Trigger Button */}
+    <div className="fixed bottom-6 right-6 z-[999] font-sans">
+      {/* Floating Animated Chef Button */}
       {!isOpen && (
         <div className="relative group">
-          {/* Animated Greeting Bubble */}
           {isWaving && (
             <div className="absolute -top-12 right-0 bg-[#15231B] text-amber-300 border border-amber-500/40 px-3 py-1.5 rounded-2xl text-[11px] font-bold shadow-2xl flex items-center gap-1.5 whitespace-nowrap animate-bounce">
               <span>👋</span>
@@ -245,15 +243,14 @@ export const ChefChatBot: React.FC = () => {
         </div>
       )}
 
-      {/* Main Chef Chat Drawer Window (100% Mobile & Desktop Responsive) */}
+      {/* Main Chef Chat Drawer Window */}
       {isOpen && (
-        <div className="w-[92vw] sm:w-[380px] h-[540px] max-h-[85vh] bg-[#111A14] border border-[#2B4534] rounded-3xl shadow-2xl flex flex-col overflow-hidden text-[#FAF7F2] animate-in fade-in slide-in-from-bottom-5 duration-300">
+        <div className="w-[92vw] sm:w-[380px] h-[540px] max-h-[85vh] bg-[#111A14] border-2 border-[#2B4534] rounded-3xl shadow-2xl flex flex-col overflow-hidden text-[#FAF7F2] animate-in fade-in slide-in-from-bottom-5 duration-300">
           
-          {/* Header with Animated Chef Avatar */}
+          {/* Header */}
           <div className="bg-[#15231B] p-3.5 px-4 border-b border-[#243B2D] flex items-center justify-between">
             <div className="flex items-center gap-3">
-              {/* Head-Lifting Animated Chef Icon */}
-              <div className="relative w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-600 to-amber-400 flex items-center justify-center text-2xl shadow-md transform hover:-translate-y-1 transition duration-300">
+              <div className="relative w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-600 to-amber-400 flex items-center justify-center text-2xl shadow-md">
                 👨‍🍳
                 <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-400 border-2 border-[#15231B] rounded-full"></span>
               </div>
@@ -304,7 +301,6 @@ export const ChefChatBot: React.FC = () => {
                 >
                   {msg.text}
 
-                  {/* Optional Interactive Order Card */}
                   {msg.orderCard && (
                     <div className="mt-2.5 p-2.5 bg-[#0F1A13] border border-emerald-500/40 rounded-xl text-[11px] text-slate-300 space-y-1">
                       <div className="flex justify-between">
@@ -321,7 +317,6 @@ export const ChefChatBot: React.FC = () => {
 
                 <span className="text-[9px] text-slate-500 px-1 mt-0.5">{msg.timestamp}</span>
 
-                {/* Quick Action Chips */}
                 {msg.options && (
                   <div className="flex flex-wrap gap-1.5 mt-2 max-w-[90%]">
                     {msg.options.map((opt, i) => (
