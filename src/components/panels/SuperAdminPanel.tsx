@@ -5,7 +5,7 @@ interface SuperAdminPanelProps {
   onClose?: () => void;
 }
 
-type TabType = 'brand' | 'pricing' | 'banking' | 'banners' | 'operations' | 'security';
+type TabType = 'brand' | 'singleThalis' | 'pricing' | 'banking' | 'banners' | 'operations' | 'security';
 
 export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => {
   const [config, setConfig] = useState<SiteConfig>(getSiteConfig());
@@ -33,7 +33,7 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     saveSiteConfig(config);
-    setSaveToast('Saari details & prices website par live save ho gayi hain!');
+    setSaveToast('Saari details, Single Thalis aur WhatsApp Business number live update ho gaye hain!');
     setTimeout(() => setSaveToast(''), 4000);
   };
 
@@ -50,8 +50,6 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
     return (
       <div className="min-h-screen bg-[#111A14] flex items-center justify-center p-4 text-[#FAF7F2]">
         <div className="max-w-md w-full bg-[#18261E] border border-[#D97706]/30 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
-          <div className="absolute -top-12 -right-12 w-36 h-36 bg-[#D97706]/10 rounded-full blur-2xl"></div>
-          
           <div className="text-center mb-8">
             <div className="w-16 h-16 bg-gradient-to-tr from-[#B45309] to-[#F59E0B] text-white rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl shadow-lg shadow-[#D97706]/20">
               👑
@@ -115,7 +113,7 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                   Super Admin Live
                 </span>
               </div>
-              <p className="text-emerald-300/60 text-xs">Dynamic pricing, compliance, media, UPI & security controls</p>
+              <p className="text-emerald-300/60 text-xs">WhatsApp Business, Single Thalis, Subscriptions & Legal</p>
             </div>
           </div>
 
@@ -147,10 +145,11 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
         {/* Tab Navigation */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex gap-2 overflow-x-auto py-2.5 border-t border-[#1F3326] scrollbar-none">
           {[
-            { id: 'brand', label: '🏢 Brand & Legal (FSSAI/GST)', icon: '🏛️' },
-            { id: 'pricing', label: '🍱 Meal Plans & Subscriptions', icon: '💰' },
+            { id: 'brand', label: '🏢 Brand & WhatsApp Business', icon: '🏛️' },
+            { id: 'singleThalis', label: '🍛 Single Thalis (Instant)', icon: '🍱' },
+            { id: 'pricing', label: '📅 Monthly Subscriptions', icon: '💰' },
             { id: 'banking', label: '💳 Banking & UPI QR', icon: '🏦' },
-            { id: 'banners', label: '🎨 Banners & Images', icon: '🖼️' },
+            { id: 'banners', label: '🎨 Banners & Photos', icon: '🖼️' },
             { id: 'operations', label: '🚚 Gates & Timings', icon: '⏰' },
             { id: 'security', label: '🔒 Staff Access PINs', icon: '🔑' },
           ].map((tab) => (
@@ -180,34 +179,46 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
         )}
 
         <form onSubmit={handleSave} className="space-y-6">
-          {/* TAB 1: BRAND & LEGAL (FSSAI, GST, CONTACTS) */}
+          {/* TAB 1: BRAND, WHATSAPP BUSINESS & LEGAL */}
           {activeTab === 'brand' && (
             <div className="bg-[#15231B] border border-[#243B2D] rounded-3xl p-6 sm:p-8 space-y-6">
               <div>
                 <h3 className="text-base font-black text-amber-300 flex items-center gap-2">
-                  🏛️ Brand Identity & Government Compliance
+                  🏛️ WhatsApp Business & Government Compliance
                 </h3>
-                <p className="text-emerald-300/60 text-xs mt-0.5">Website footer, invoice headers aur legal disclaimer data</p>
+                <p className="text-emerald-300/60 text-xs mt-0.5">Yahan WhatsApp Business number aur official phone set karein</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-                <div>
-                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Brand Display Name</label>
+                {/* Highlighted WhatsApp Business Field */}
+                <div className="sm:col-span-2 bg-[#0F1A13] p-4 rounded-2xl border-2 border-emerald-500/40">
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-black text-emerald-300 uppercase flex items-center gap-1.5">
+                      <span>💬</span> WhatsApp Business Number (For Orders & Customer Chat)
+                    </label>
+                    <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full font-bold">
+                      Format: 9193XXXXXXXX
+                    </span>
+                  </div>
                   <input
                     type="text"
-                    value={config.brandName}
-                    onChange={(e) => setConfig({ ...config, brandName: e.target.value })}
-                    className="w-full bg-[#0F1A13] border border-[#243B2D] focus:border-[#F59E0B] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
+                    value={config.whatsappNumber}
+                    onChange={(e) => setConfig({ ...config, whatsappNumber: e.target.value })}
+                    placeholder="e.g. 919312345678"
+                    className="w-full bg-[#18271E] border border-emerald-500/50 focus:border-emerald-400 rounded-xl px-4 py-2.5 text-base text-emerald-200 font-mono font-bold outline-none"
                   />
+                  <p className="text-[11px] text-emerald-300/60 mt-1">
+                    Customer jab "WhatsApp Order" button par click karega toh isi number par message aayega.
+                  </p>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Legal Company Name</label>
+                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Display Phone (Voice Calls)</label>
                   <input
                     type="text"
-                    value={config.legalEntityName}
-                    onChange={(e) => setConfig({ ...config, legalEntityName: e.target.value })}
-                    className="w-full bg-[#0F1A13] border border-[#243B2D] focus:border-[#F59E0B] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
+                    value={config.phone}
+                    onChange={(e) => setConfig({ ...config, phone: e.target.value })}
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] focus:border-[#F59E0B] rounded-xl px-3.5 py-2.5 text-sm text-white font-mono outline-none"
                   />
                 </div>
 
@@ -232,26 +243,6 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Customer Support Phone</label>
-                  <input
-                    type="text"
-                    value={config.phone}
-                    onChange={(e) => setConfig({ ...config, phone: e.target.value })}
-                    className="w-full bg-[#0F1A13] border border-[#243B2D] focus:border-[#F59E0B] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">WhatsApp Order Number</label>
-                  <input
-                    type="text"
-                    value={config.whatsappNumber}
-                    onChange={(e) => setConfig({ ...config, whatsappNumber: e.target.value })}
-                    className="w-full bg-[#0F1A13] border border-[#243B2D] focus:border-[#F59E0B] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
-                  />
-                </div>
-
-                <div className="sm:col-span-2">
                   <label className="block text-xs font-bold text-emerald-200 mb-1.5">Official Support Email</label>
                   <input
                     type="email"
@@ -274,17 +265,263 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
             </div>
           )}
 
-          {/* TAB 2: MEAL PLANS & PRICING */}
+          {/* TAB 2: SINGLE THALIS / INSTANT ORDERS (NEW CMS SECTION) */}
+          {activeTab === 'singleThalis' && (
+            <div className="space-y-6">
+              <div className="bg-[#15231B] border border-[#243B2D] rounded-3xl p-6 sm:p-8 space-y-6">
+                <div>
+                  <h3 className="text-base font-black text-amber-300 flex items-center gap-2">
+                    🍛 Single Thali & Instant Daily Orders
+                  </h3>
+                  <p className="text-emerald-300/60 text-xs mt-0.5">Instant booking modal aur single thali order card details</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Mini Veg Thali */}
+                  <div className="bg-[#0F1A13] border border-emerald-500/30 rounded-2xl p-5 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-emerald-300 uppercase">🌱 Mini Veg Thali</span>
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs text-slate-400">₹</span>
+                        <input
+                          type="number"
+                          value={config.singleThalis.miniVeg.price}
+                          onChange={(e) =>
+                            setConfig({
+                              ...config,
+                              singleThalis: {
+                                ...config.singleThalis,
+                                miniVeg: { ...config.singleThalis.miniVeg, price: parseFloat(e.target.value) || 0 },
+                              },
+                            })
+                          }
+                          className="w-20 bg-[#18271E] border border-[#243B2D] rounded-lg px-2 py-1 text-white font-bold text-sm text-right"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-400 mb-1">Display Title</label>
+                      <input
+                        type="text"
+                        value={config.singleThalis.miniVeg.name}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            singleThalis: {
+                              ...config.singleThalis,
+                              miniVeg: { ...config.singleThalis.miniVeg, name: e.target.value },
+                            },
+                          })
+                        }
+                        className="w-full bg-[#18271E] border border-[#243B2D] rounded-lg px-3 py-1.5 text-xs text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-400 mb-1">Items Included</label>
+                      <textarea
+                        rows={2}
+                        value={config.singleThalis.miniVeg.items}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            singleThalis: {
+                              ...config.singleThalis,
+                              miniVeg: { ...config.singleThalis.miniVeg, items: e.target.value },
+                            },
+                          })
+                        }
+                        className="w-full bg-[#18271E] border border-[#243B2D] rounded-lg px-3 py-1.5 text-xs text-white resize-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Standard North Indian Thali */}
+                  <div className="bg-[#0F1A13] border border-amber-500/30 rounded-2xl p-5 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-amber-300 uppercase">🌟 Standard Veg Thali</span>
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs text-slate-400">₹</span>
+                        <input
+                          type="number"
+                          value={config.singleThalis.standardVeg.price}
+                          onChange={(e) =>
+                            setConfig({
+                              ...config,
+                              singleThalis: {
+                                ...config.singleThalis,
+                                standardVeg: { ...config.singleThalis.standardVeg, price: parseFloat(e.target.value) || 0 },
+                              },
+                            })
+                          }
+                          className="w-20 bg-[#18271E] border border-[#243B2D] rounded-lg px-2 py-1 text-white font-bold text-sm text-right"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-400 mb-1">Display Title</label>
+                      <input
+                        type="text"
+                        value={config.singleThalis.standardVeg.name}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            singleThalis: {
+                              ...config.singleThalis,
+                              standardVeg: { ...config.singleThalis.standardVeg, name: e.target.value },
+                            },
+                          })
+                        }
+                        className="w-full bg-[#18271E] border border-[#243B2D] rounded-lg px-3 py-1.5 text-xs text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-400 mb-1">Items Included</label>
+                      <textarea
+                        rows={2}
+                        value={config.singleThalis.standardVeg.items}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            singleThalis: {
+                              ...config.singleThalis,
+                              standardVeg: { ...config.singleThalis.standardVeg, items: e.target.value },
+                            },
+                          })
+                        }
+                        className="w-full bg-[#18271E] border border-[#243B2D] rounded-lg px-3 py-1.5 text-xs text-white resize-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Egg Curry Thali */}
+                  <div className="bg-[#0F1A13] border border-yellow-500/30 rounded-2xl p-5 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-yellow-300 uppercase">🍳 Double Egg Thali</span>
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs text-slate-400">₹</span>
+                        <input
+                          type="number"
+                          value={config.singleThalis.eggSpecial.price}
+                          onChange={(e) =>
+                            setConfig({
+                              ...config,
+                              singleThalis: {
+                                ...config.singleThalis,
+                                eggSpecial: { ...config.singleThalis.eggSpecial, price: parseFloat(e.target.value) || 0 },
+                              },
+                            })
+                          }
+                          className="w-20 bg-[#18271E] border border-[#243B2D] rounded-lg px-2 py-1 text-white font-bold text-sm text-right"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-400 mb-1">Display Title</label>
+                      <input
+                        type="text"
+                        value={config.singleThalis.eggSpecial.name}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            singleThalis: {
+                              ...config.singleThalis,
+                              eggSpecial: { ...config.singleThalis.eggSpecial, name: e.target.value },
+                            },
+                          })
+                        }
+                        className="w-full bg-[#18271E] border border-[#243B2D] rounded-lg px-3 py-1.5 text-xs text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-400 mb-1">Items Included</label>
+                      <textarea
+                        rows={2}
+                        value={config.singleThalis.eggSpecial.items}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            singleThalis: {
+                              ...config.singleThalis,
+                              eggSpecial: { ...config.singleThalis.eggSpecial, items: e.target.value },
+                            },
+                          })
+                        }
+                        className="w-full bg-[#18271E] border border-[#243B2D] rounded-lg px-3 py-1.5 text-xs text-white resize-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Non-Veg Chicken Thali */}
+                  <div className="bg-[#0F1A13] border border-rose-500/30 rounded-2xl p-5 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-rose-300 uppercase">🍗 Chicken Special Thali</span>
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs text-slate-400">₹</span>
+                        <input
+                          type="number"
+                          value={config.singleThalis.chickenSpecial.price}
+                          onChange={(e) =>
+                            setConfig({
+                              ...config,
+                              singleThalis: {
+                                ...config.singleThalis,
+                                chickenSpecial: { ...config.singleThalis.chickenSpecial, price: parseFloat(e.target.value) || 0 },
+                              },
+                            })
+                          }
+                          className="w-20 bg-[#18271E] border border-[#243B2D] rounded-lg px-2 py-1 text-white font-bold text-sm text-right"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-400 mb-1">Display Title</label>
+                      <input
+                        type="text"
+                        value={config.singleThalis.chickenSpecial.name}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            singleThalis: {
+                              ...config.singleThalis,
+                              chickenSpecial: { ...config.singleThalis.chickenSpecial, name: e.target.value },
+                            },
+                          })
+                        }
+                        className="w-full bg-[#18271E] border border-[#243B2D] rounded-lg px-3 py-1.5 text-xs text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-400 mb-1">Items Included</label>
+                      <textarea
+                        rows={2}
+                        value={config.singleThalis.chickenSpecial.items}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            singleThalis: {
+                              ...config.singleThalis,
+                              chickenSpecial: { ...config.singleThalis.chickenSpecial, items: e.target.value },
+                            },
+                          })
+                        }
+                        className="w-full bg-[#18271E] border border-[#243B2D] rounded-lg px-3 py-1.5 text-xs text-white resize-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: MONTHLY SUBSCRIPTIONS */}
           {activeTab === 'pricing' && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Veg Package */}
                 <div className="bg-[#15231B] border border-emerald-500/30 rounded-3xl p-6 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="px-3 py-1 bg-emerald-500/20 text-emerald-300 font-bold text-xs rounded-full border border-emerald-500/40">
-                      🌱 Pure Veg Plan
-                    </span>
-                  </div>
+                  <span className="px-3 py-1 bg-emerald-500/20 text-emerald-300 font-bold text-xs rounded-full border border-emerald-500/40">
+                    🌱 Pure Veg Subscription
+                  </span>
                   <div>
                     <label className="block text-[11px] font-bold text-emerald-300 mb-1">Daily Meal Price (₹)</label>
                     <input
@@ -336,32 +573,13 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                       className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3 py-2 text-xs text-white"
                     />
                   </div>
-                  <div>
-                    <label className="block text-[11px] font-bold text-emerald-300 mb-1">Items Included</label>
-                    <textarea
-                      rows={2}
-                      value={config.packages.veg.itemsIncluded}
-                      onChange={(e) =>
-                        setConfig({
-                          ...config,
-                          packages: {
-                            ...config.packages,
-                            veg: { ...config.packages.veg, itemsIncluded: e.target.value },
-                          },
-                        })
-                      }
-                      className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3 py-2 text-xs text-white resize-none"
-                    />
-                  </div>
                 </div>
 
                 {/* Egg Package */}
                 <div className="bg-[#15231B] border border-amber-500/30 rounded-3xl p-6 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="px-3 py-1 bg-amber-500/20 text-amber-300 font-bold text-xs rounded-full border border-amber-500/40">
-                      🍳 Egg Special Plan
-                    </span>
-                  </div>
+                  <span className="px-3 py-1 bg-amber-500/20 text-amber-300 font-bold text-xs rounded-full border border-amber-500/40">
+                    🍳 Egg Special Subscription
+                  </span>
                   <div>
                     <label className="block text-[11px] font-bold text-amber-300 mb-1">Daily Meal Price (₹)</label>
                     <input
@@ -413,32 +631,13 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                       className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3 py-2 text-xs text-white"
                     />
                   </div>
-                  <div>
-                    <label className="block text-[11px] font-bold text-amber-300 mb-1">Items Included</label>
-                    <textarea
-                      rows={2}
-                      value={config.packages.egg.itemsIncluded}
-                      onChange={(e) =>
-                        setConfig({
-                          ...config,
-                          packages: {
-                            ...config.packages,
-                            egg: { ...config.packages.egg, itemsIncluded: e.target.value },
-                          },
-                        })
-                      }
-                      className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3 py-2 text-xs text-white resize-none"
-                    />
-                  </div>
                 </div>
 
                 {/* Non-Veg Package */}
                 <div className="bg-[#15231B] border border-rose-500/30 rounded-3xl p-6 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="px-3 py-1 bg-rose-500/20 text-rose-300 font-bold text-xs rounded-full border border-rose-500/40">
-                      🍗 Non-Veg Plan
-                    </span>
-                  </div>
+                  <span className="px-3 py-1 bg-rose-500/20 text-rose-300 font-bold text-xs rounded-full border border-rose-500/40">
+                    🍗 Non-Veg Subscription
+                  </span>
                   <div>
                     <label className="block text-[11px] font-bold text-rose-300 mb-1">Daily Meal Price (₹)</label>
                     <input
@@ -490,75 +689,18 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                       className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3 py-2 text-xs text-white"
                     />
                   </div>
-                  <div>
-                    <label className="block text-[11px] font-bold text-rose-300 mb-1">Items Included</label>
-                    <textarea
-                      rows={2}
-                      value={config.packages.nonVeg.itemsIncluded}
-                      onChange={(e) =>
-                        setConfig({
-                          ...config,
-                          packages: {
-                            ...config.packages,
-                            nonVeg: { ...config.packages.nonVeg, itemsIncluded: e.target.value },
-                          },
-                        })
-                      }
-                      className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3 py-2 text-xs text-white resize-none"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Extra: Trial & Delivery Charges */}
-              <div className="bg-[#15231B] border border-[#243B2D] rounded-3xl p-6 grid grid-cols-1 sm:grid-cols-3 gap-5">
-                <div>
-                  <label className="block text-xs font-bold text-indigo-300 mb-1.5">Trial Meal Rate (₹)</label>
-                  <input
-                    type="number"
-                    value={config.packages.trial.price}
-                    onChange={(e) =>
-                      setConfig({
-                        ...config,
-                        packages: {
-                          ...config.packages,
-                          trial: { ...config.packages.trial, price: parseFloat(e.target.value) || 0 },
-                        },
-                      })
-                    }
-                    className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-white font-bold text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Delivery Charge per Order (₹)</label>
-                  <input
-                    type="number"
-                    value={config.deliveryCharge}
-                    onChange={(e) => setConfig({ ...config, deliveryCharge: parseFloat(e.target.value) || 0 })}
-                    className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-white font-bold text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Free Delivery Above (₹)</label>
-                  <input
-                    type="number"
-                    value={config.freeDeliveryAbove}
-                    onChange={(e) => setConfig({ ...config, freeDeliveryAbove: parseFloat(e.target.value) || 0 })}
-                    className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-white font-bold text-sm"
-                  />
                 </div>
               </div>
             </div>
           )}
 
-          {/* TAB 3: BANKING & UPI QR */}
+          {/* TAB 4: BANKING & UPI */}
           {activeTab === 'banking' && (
             <div className="bg-[#15231B] border border-[#243B2D] rounded-3xl p-6 sm:p-8 space-y-6">
               <div>
                 <h3 className="text-base font-black text-amber-300 flex items-center gap-2">
                   🏦 Bank Account & UPI Payment Destination
                 </h3>
-                <p className="text-emerald-300/60 text-xs mt-0.5">Yeh account customer order modal aur checkout screen me show hota hai</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
@@ -612,16 +754,6 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                   />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Branch</label>
-                  <input
-                    type="text"
-                    value={config.bankBranch}
-                    onChange={(e) => setConfig({ ...config, bankBranch: e.target.value })}
-                    className="w-full bg-[#0F1A13] border border-[#243B2D] focus:border-[#F59E0B] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
-                  />
-                </div>
-
                 <div className="sm:col-span-3">
                   <label className="block text-xs font-bold text-amber-300 mb-1.5">UPI QR Code Image URL</label>
                   <input
@@ -630,35 +762,18 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                     onChange={(e) => setConfig({ ...config, upiQrImage: e.target.value })}
                     className="w-full bg-[#0F1A13] border border-[#243B2D] focus:border-[#F59E0B] rounded-xl px-3.5 py-2.5 text-xs text-white font-mono outline-none"
                   />
-                  {config.upiQrImage && (
-                    <div className="mt-3 flex items-center gap-4 p-3 bg-[#0F1A13] border border-[#243B2D] rounded-2xl w-fit">
-                      <img
-                        src={config.upiQrImage}
-                        alt="QR Preview"
-                        className="w-20 h-20 object-cover rounded-lg border border-emerald-500/20"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150?text=Invalid+Image';
-                        }}
-                      />
-                      <div className="text-xs text-emerald-200/70">
-                        <p className="font-bold text-white">Live QR Preview</p>
-                        <p className="text-[11px]">UPI: {config.upiId}</p>
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
           )}
 
-          {/* TAB 4: BANNERS & MEDIA */}
+          {/* TAB 5: BANNERS & MEDIA */}
           {activeTab === 'banners' && (
             <div className="bg-[#15231B] border border-[#243B2D] rounded-3xl p-6 sm:p-8 space-y-6">
               <div>
                 <h3 className="text-base font-black text-amber-300 flex items-center gap-2">
                   🖼️ Homepage Banners & Showcase Media
                 </h3>
-                <p className="text-emerald-300/60 text-xs mt-0.5">Hero top text, badges and dish photos across the website</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -693,7 +808,7 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Hero Banner Image URL</label>
+                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Hero Banner Photo URL</label>
                   <input
                     type="text"
                     value={config.heroBannerImage}
@@ -703,7 +818,7 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Main Showcase Thali Image URL</label>
+                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Main Showcase Thali Photo URL</label>
                   <input
                     type="text"
                     value={config.thaliImage}
@@ -711,38 +826,17 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                     className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-xs text-white font-mono outline-none"
                   />
                 </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Veg Thali Card Photo URL</label>
-                  <input
-                    type="text"
-                    value={config.vegThaliImage}
-                    onChange={(e) => setConfig({ ...config, vegThaliImage: e.target.value })}
-                    className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-xs text-white font-mono outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Non-Veg Thali Card Photo URL</label>
-                  <input
-                    type="text"
-                    value={config.nonVegThaliImage}
-                    onChange={(e) => setConfig({ ...config, nonVegThaliImage: e.target.value })}
-                    className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-xs text-white font-mono outline-none"
-                  />
-                </div>
               </div>
             </div>
           )}
 
-          {/* TAB 5: OPERATIONS & GATES */}
+          {/* TAB 6: OPERATIONS & TIMINGS */}
           {activeTab === 'operations' && (
             <div className="bg-[#15231B] border border-[#243B2D] rounded-3xl p-6 sm:p-8 space-y-6">
               <div>
                 <h3 className="text-base font-black text-amber-300 flex items-center gap-2">
                   🚚 Delivery Gates & Shift Timings
                 </h3>
-                <p className="text-emerald-300/60 text-xs mt-0.5">Meal delivery windows, cutoff times and covered institutions</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -755,21 +849,6 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                       setConfig({
                         ...config,
                         deliverySlots: { ...config.deliverySlots, lunchTime: e.target.value },
-                      })
-                    }
-                    className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Lunch Booking Cutoff Time</label>
-                  <input
-                    type="text"
-                    value={config.deliverySlots.lunchCutoff}
-                    onChange={(e) =>
-                      setConfig({
-                        ...config,
-                        deliverySlots: { ...config.deliverySlots, lunchCutoff: e.target.value },
                       })
                     }
                     className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
@@ -791,23 +870,8 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                   />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Dinner Booking Cutoff Time</label>
-                  <input
-                    type="text"
-                    value={config.deliverySlots.dinnerCutoff}
-                    onChange={(e) =>
-                      setConfig({
-                        ...config,
-                        deliverySlots: { ...config.deliverySlots, dinnerCutoff: e.target.value },
-                      })
-                    }
-                    className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
-                  />
-                </div>
-
                 <div className="sm:col-span-2">
-                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Covered Colleges / Hostels / Gates</label>
+                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Covered Locations / Colleges</label>
                   <textarea
                     rows={2}
                     value={config.deliveryLocations}
@@ -815,21 +879,11 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                     className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none resize-none"
                   />
                 </div>
-
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-bold text-emerald-200 mb-1.5">Order Form Confirmation Note</label>
-                  <input
-                    type="text"
-                    value={config.orderFormNote}
-                    onChange={(e) => setConfig({ ...config, orderFormNote: e.target.value })}
-                    className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
-                  />
-                </div>
               </div>
             </div>
           )}
 
-          {/* TAB 6: SECURITY PINS */}
+          {/* TAB 7: SECURITY PINS */}
           {activeTab === 'security' && (
             <div className="bg-[#15231B] border border-[#243B2D] rounded-3xl p-6 sm:p-8 space-y-6">
               <div className="flex items-center justify-between">
@@ -837,7 +891,6 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                   <h3 className="text-base font-black text-amber-300 flex items-center gap-2">
                     🔒 Portal Passcodes & Access Control PINs
                   </h3>
-                  <p className="text-emerald-300/60 text-xs mt-0.5">Staff aur administrative workspaces ke authentication PINs</p>
                 </div>
 
                 <button
@@ -858,7 +911,6 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                     onChange={(e) => setConfig({ ...config, superAdminPin: e.target.value })}
                     className="mt-2 w-full bg-[#18271E] border border-amber-500/40 rounded-xl px-3 py-2 text-center text-amber-300 font-mono font-black text-lg outline-none"
                   />
-                  <p className="text-[10px] text-emerald-300/50 mt-1 text-center">Master full access</p>
                 </div>
 
                 <div className="bg-[#0F1A13] p-4 rounded-2xl border border-[#243B2D]">
@@ -869,7 +921,6 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                     onChange={(e) => setConfig({ ...config, adminPin: e.target.value })}
                     className="mt-2 w-full bg-[#18271E] border border-[#243B2D] rounded-xl px-3 py-2 text-center text-white font-mono font-bold text-lg outline-none"
                   />
-                  <p className="text-[10px] text-emerald-300/50 mt-1 text-center">Orders & daily stats</p>
                 </div>
 
                 <div className="bg-[#0F1A13] p-4 rounded-2xl border border-[#243B2D]">
@@ -880,18 +931,16 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                     onChange={(e) => setConfig({ ...config, managerPin: e.target.value })}
                     className="mt-2 w-full bg-[#18271E] border border-[#243B2D] rounded-xl px-3 py-2 text-center text-white font-mono font-bold text-lg outline-none"
                   />
-                  <p className="text-[10px] text-emerald-300/50 mt-1 text-center">Deliveries & attendance</p>
                 </div>
 
                 <div className="bg-[#0F1A13] p-4 rounded-2xl border border-[#243B2D]">
-                  <span className="text-xs font-bold text-emerald-200 uppercase">👨‍🍳 Kitchen/Chef PIN</span>
+                  <span className="text-xs font-bold text-emerald-200 uppercase">👨‍🍳 Kitchen PIN</span>
                   <input
                     type={showPins ? 'text' : 'password'}
                     value={config.kitchenPin}
                     onChange={(e) => setConfig({ ...config, kitchenPin: e.target.value })}
                     className="mt-2 w-full bg-[#18271E] border border-[#243B2D] rounded-xl px-3 py-2 text-center text-white font-mono font-bold text-lg outline-none"
                   />
-                  <p className="text-[10px] text-emerald-300/50 mt-1 text-center">Live kitchen display</p>
                 </div>
               </div>
             </div>
@@ -901,7 +950,7 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
           <div className="sticky bottom-6 bg-[#15231B]/95 backdrop-blur-md border border-[#2B4534] p-4 rounded-3xl shadow-2xl flex items-center justify-between">
             <div className="hidden sm:flex items-center gap-2 text-xs text-emerald-300/70">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span>Changes reflect instantly on live website upon save</span>
+              <span>All updates reflect immediately on your live site</span>
             </div>
 
             <button
