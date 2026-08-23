@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { getSiteConfig, SiteConfig, VEG_THALI_IMG, EGG_THALI_IMG, CHICKEN_THALI_IMG } from '../../utils/siteConfigStore';
 
-export const Hero: React.FC = () => {
+export const HeroBanner: React.FC = () => {
   const { openInstantOrder, openRegistration } = useApp();
   const [config, setConfig] = useState<SiteConfig>(getSiteConfig());
   const [activePlanTab, setActivePlanTab] = useState<'veg' | 'egg' | 'nonveg'>('veg');
