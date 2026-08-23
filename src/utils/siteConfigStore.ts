@@ -33,8 +33,10 @@ export interface SiteConfig {
   heroBannerImage: string;
   thaliImage: string;
 
+  // ONLY 3 CORE THALIS (NO EXTRA DUMMY ITEMS)
   dishes: DynamicDish[];
 
+  // ONLY 3 MONTHLY PACKAGES
   packages: {
     veg: { dailyPrice: number; monthlyPrice: number; description: string; itemsIncluded: string };
     egg: { dailyPrice: number; monthlyPrice: number; description: string; itemsIncluded: string };
@@ -77,7 +79,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
   heroBannerImage: "https://images.unsplash.com/photo-1613292443284-8d10ef9383fe?w=1920&auto=format&fit=crop&q=80",
   thaliImage: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=600&auto=format&fit=crop&q=80",
 
-  // STRICT 3 CORE THALIS WITH EXACT ₹80, ₹100, ₹120 PRICING
+  // STRICTLY 3 DISHES ONLY
   dishes: [
     {
       id: "dish-veg",
@@ -111,6 +113,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
     },
   ],
 
+  // STRICTLY 3 PACKAGES ONLY
   packages: {
     veg: {
       dailyPrice: 80,
@@ -144,8 +147,8 @@ export const DEFAULT_CONFIG: SiteConfig = {
   kitchenPin: "1234",
 };
 
-// Unique key to automatically clear outdated browser cache
-const CONFIG_KEY = "bmb_live_site_config_v9_fixed_prices";
+// New version key clears all old dummy entries from browser memory
+const CONFIG_KEY = "bmb_live_site_config_v10_strict_clean";
 
 export const getSiteConfig = (): SiteConfig => {
   try {
