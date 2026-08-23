@@ -29,7 +29,7 @@ export const TodayMenuTicker: React.FC = () => {
               onClick={() => openInstantOrder()}
               className="inline-flex items-center gap-2 hover:text-amber-600 transition cursor-pointer shrink-0"
             >
-              <span>{dish.category === 'Veg' ? '🌱' : dish.category === 'Egg' ? '🍳' : dish.category === 'Non-Veg' ? '🍗' : '🍚'}</span>
+              <span>{dish.category === 'Veg' ? '🌱' : dish.category === 'Egg' ? '🍳' : '🍗'}</span>
               <span>{dish.name}:</span>
               <span className="text-amber-600 font-black">₹{dish.price}</span>
               <span className="text-slate-300">•</span>
