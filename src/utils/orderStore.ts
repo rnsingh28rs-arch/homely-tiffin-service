@@ -8,6 +8,7 @@ export interface OrderItem {
   phone: string;
   city: CityLocation;
   address: string;
+  mapLocationUrl?: string;
   mealPlan: string;
   planType: "Daily" | "Monthly" | "Trial";
   slot: "Lunch" | "Dinner" | "Both (Lunch & Dinner)";
@@ -20,9 +21,22 @@ export interface OrderItem {
   status: OrderStatus;
   rejectionReason?: string;
   createdAt: string;
+  formattedTimestamp: string; // Exact Date, Time & Seconds
 }
 
-const ORDER_STORAGE_KEY = "bmb_cloud_orders_database_v3";
+const ORDER_STORAGE_KEY = "bmb_cloud_orders_database_v4";
+
+export const formatExactTimestamp = (date: Date = new Date()): string => {
+  return date.toLocaleString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  });
+};
 
 export const getStoredOrders = (): OrderItem[] => {
   try {
@@ -33,12 +47,16 @@ export const getStoredOrders = (): OrderItem[] => {
   }
 };
 
-export const createOrder = (orderData: Omit<OrderItem, "id" | "status" | "createdAt">): OrderItem => {
+export const createOrder = (
+  orderData: Omit<OrderItem, "id" | "status" | "createdAt" | "formattedTimestamp">
+): OrderItem => {
+  const now = new Date();
   const newOrder: OrderItem = {
     ...orderData,
     id: "BMB-" + Math.floor(100000 + Math.random() * 900000),
     status: "pending",
-    createdAt: new Date().toISOString(),
+    createdAt: now.toISOString(),
+    formattedTimestamp: formatExactTimestamp(now),
   };
 
   const existing = getStoredOrders();
@@ -48,11 +66,19 @@ export const createOrder = (orderData: Omit<OrderItem, "id" | "status" | "create
   return newOrder;
 };
 
-export const updateOrderStatus = (orderId: string, status: OrderStatus, rejectionReason?: string): void => {
+export const updateOrderStatus = (
+  orderId: string,
+  status: OrderStatus,
+  rejectionReason?: string
+): void => {
   const existing = getStoredOrders();
   const updated = existing.map((ord) => {
     if (ord.id === orderId) {
-      return { ...ord, status, rejectionReason: status === "rejected" ? rejectionReason : undefined };
+      return {
+        ...ord,
+        status,
+        rejectionReason: status === "rejected" ? rejectionReason : undefined,
+      };
     }
     return ord;
   });
