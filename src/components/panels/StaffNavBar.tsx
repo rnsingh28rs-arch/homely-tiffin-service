@@ -1,100 +1,100 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
-import { STAFF_CREDENTIALS } from '../../data/staffConfig';
-import {
-  ShieldAlert,
-  Briefcase,
-  ChefHat,
-  LogOut,
-  Sparkles,
-  ExternalLink,
-  ChevronRight,
-  UserCheck
-} from 'lucide-react';
 
 export const StaffNavBar: React.FC = () => {
-  const { activeRole, setActiveRole, openStaffLogin } = useApp();
+  const { activeRole, setActiveRole, authenticatedRoles } = useApp();
 
-  if (activeRole === 'customer') return null;
-
-  const currentConfig = STAFF_CREDENTIALS[activeRole as 'admin' | 'manager' | 'chef'] || STAFF_CREDENTIALS.admin;
+  const handleExitToWebsite = () => {
+    setActiveRole('customer');
+    window.location.hash = '';
+  };
 
   return (
-    <div className="bg-[#05180F] text-white border-b-2 border-amber-400 py-2.5 px-4 sticky top-0 z-40 shadow-lg">
+    <div className="bg-[#111A14] text-[#FAF7F2] border-b border-[#243B2D] px-4 py-3 sticky top-0 z-40 shadow-xl">
       <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
         
-        {/* Left: Role Info */}
+        {/* Workspace Title & Current Badge */}
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-amber-400 text-black flex items-center justify-center font-bold text-xs shadow-xs">
-            {activeRole === 'admin' && <ShieldAlert className="w-5 h-5 text-red-900" />}
-            {activeRole === 'manager' && <Briefcase className="w-5 h-5 text-blue-900" />}
-            {activeRole === 'chef' && <ChefHat className="w-5 h-5 text-amber-900" />}
-          </div>
-
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-amber-300">
-                Staff Control Zone
-              </span>
-              <span className="bg-emerald-800 text-emerald-100 text-[10px] px-2 py-0.2 rounded-full font-mono flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                Active Session
-              </span>
-            </div>
-            <div className="text-xs font-bold text-white flex items-center gap-1">
-              <span>{currentConfig.title}</span>
-              <span className="text-gray-400 text-[11px]">({currentConfig.name})</span>
-            </div>
-          </div>
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span className="text-xs font-black uppercase tracking-wider text-amber-300">
+            Internal Workspace
+          </span>
+          <span className="text-xs text-slate-400 hidden sm:inline">•</span>
+          <span className="text-xs font-bold text-emerald-200 capitalize">
+            Active: {activeRole} Desk
+          </span>
         </div>
 
-        {/* Middle: Fast Switch between Staff Panels */}
-        <div className="flex items-center bg-black/50 p-1 rounded-xl border border-emerald-900/80 gap-1 text-xs">
+        {/* Role Hierarchy Navigation Switcher */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Admin Tab (Visible if SuperAdmin or Admin) */}
           <button
-            onClick={() => setActiveRole('admin')}
-            className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1.5 ${
+            type="button"
+            onClick={() => {
+              setActiveRole('admin');
+              window.location.hash = '#admin';
+            }}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
               activeRole === 'admin'
-                ? 'bg-red-700 text-white shadow-xs'
-                : 'text-gray-300 hover:text-white'
+                ? 'bg-amber-500 text-slate-950 font-black shadow-md'
+                : 'bg-[#18271E] text-slate-300 hover:bg-[#23382B] border border-[#243B2D]'
             }`}
           >
-            <ShieldAlert className="w-3.5 h-3.5" />
-            <span>Admin</span>
+            <span>💼</span>
+            <span>Admin Orders</span>
           </button>
 
+          {/* Manager Tab (Visible to SuperAdmin, Admin, Manager) */}
           <button
-            onClick={() => setActiveRole('manager')}
-            className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1.5 ${
+            type="button"
+            onClick={() => {
+              setActiveRole('manager');
+              window.location.hash = '#manager';
+            }}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
               activeRole === 'manager'
-                ? 'bg-blue-700 text-white shadow-xs'
-                : 'text-gray-300 hover:text-white'
+                ? 'bg-amber-500 text-slate-950 font-black shadow-md'
+                : 'bg-[#18271E] text-slate-300 hover:bg-[#23382B] border border-[#243B2D]'
             }`}
           >
-            <Briefcase className="w-3.5 h-3.5" />
+            <span>📋</span>
             <span>Manager</span>
           </button>
 
+          {/* Chef Tab (Visible to SuperAdmin, Admin, Manager, Chef) */}
           <button
-            onClick={() => setActiveRole('chef')}
-            className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1.5 ${
+            type="button"
+            onClick={() => {
+              setActiveRole('chef');
+              window.location.hash = '#chef';
+            }}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
               activeRole === 'chef'
-                ? 'bg-amber-700 text-white shadow-xs'
-                : 'text-gray-300 hover:text-white'
+                ? 'bg-amber-500 text-slate-950 font-black shadow-md'
+                : 'bg-[#18271E] text-slate-300 hover:bg-[#23382B] border border-[#243B2D]'
             }`}
           >
-            <ChefHat className="w-3.5 h-3.5" />
-            <span>Chef</span>
+            <span>👨‍🍳</span>
+            <span>Kitchen Display</span>
           </button>
-        </div>
 
-        {/* Right: Exit to Customer Site button */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setActiveRole('customer')}
-            className="flex items-center gap-2 bg-amber-400 hover:bg-amber-300 text-black px-4 py-1.5 rounded-xl font-bold text-xs shadow-md transition-all active:scale-95 cursor-pointer"
+          {/* Super Admin Shortcut (Direct Jump) */}
+          <a
+            href="#superadmin"
+            className="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#18271E] hover:bg-[#23382B] text-amber-300 border border-amber-500/30 transition flex items-center gap-1.5"
           >
-            <LogOut className="w-3.5 h-3.5" />
-            <span>Exit to Customer Website</span>
+            <span>👑</span>
+            <span>Super Admin</span>
+          </a>
+
+          {/* Exit to Public Website Button */}
+          <button
+            type="button"
+            onClick={handleExitToWebsite}
+            className="px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 transition flex items-center gap-1 ml-1"
+          >
+            <span>🌐</span>
+            <span>Exit to Website</span>
           </button>
         </div>
 
