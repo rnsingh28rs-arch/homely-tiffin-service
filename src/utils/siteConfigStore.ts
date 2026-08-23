@@ -1,64 +1,151 @@
 export interface SiteConfig {
+  // Brand & Legal Compliance
+  brandName: string;
+  legalEntityName: string;
+  fssaiNumber: string;
+  gstNumber: string;
+  phone: string;
+  whatsappNumber: string;
+  email: string;
+  kitchenAddress: string;
+
+  // Banner & Media
+  heroBadge: string;
+  heroHeadline: string;
+  heroTagline: string;
+  heroBannerImage: string;
+  thaliImage: string;
+  vegThaliImage: string;
+  nonVegThaliImage: string;
+
+  // Banking & Payments
+  bankAccountName: string;
+  bankAccountNumber: string;
+  bankIfscCode: string;
+  bankName: string;
+  bankBranch: string;
+  upiId: string;
+  upiQrImage: string;
+
+  // Subscriptions & Meal Packages
+  packages: {
+    veg: {
+      dailyPrice: number;
+      monthlyPrice: number;
+      description: string;
+      itemsIncluded: string;
+    };
+    egg: {
+      dailyPrice: number;
+      monthlyPrice: number;
+      description: string;
+      itemsIncluded: string;
+    };
+    nonVeg: {
+      dailyPrice: number;
+      monthlyPrice: number;
+      description: string;
+      itemsIncluded: string;
+    };
+    trial: {
+      price: number;
+      description: string;
+    };
+  };
+
+  // Delivery & Operations
+  deliveryCharge: number;
+  freeDeliveryAbove: number;
+  deliverySlots: {
+    lunchTime: string;
+    dinnerTime: string;
+    lunchCutoff: string;
+    dinnerCutoff: string;
+  };
+  deliveryLocations: string;
+
+  // Form & Website Disclaimers
+  orderFormNote: string;
+  registrationDisclaimer: string;
+
+  // Security Access PINs
   superAdminPin: string;
   adminPin: string;
   managerPin: string;
   kitchenPin: string;
-  upiId: string;
-  upiQrImage: string;
-  whatsappNumber: string;
-  phone: string;
-  email: string;
-  heroTagline: string;
-  heroBannerImage: string;
-  thaliImage: string;
-  deliverySlots: {
-    lunchTime: string;
-    dinnerTime: string;
-  };
-  deliveryLocations: string;
-  prices: {
-    vegDaily: number;
-    vegMonthly: number;
-    eggDaily: number;
-    eggMonthly: number;
-    nonVegDaily: number;
-    nonVegMonthly: number;
-    trialMeal: number;
-    deliveryCharge: number;
-  };
 }
 
 export const DEFAULT_CONFIG: SiteConfig = {
+  brandName: "Bring My Bite",
+  legalEntityName: "Bring My Bite Food & Hospitality Services",
+  fssaiNumber: "22724923000542",
+  gstNumber: "09AAFCB1234F1Z5",
+  phone: "+91 9004848984",
+  whatsappNumber: "919004848984",
+  email: "support@bringmybite.com",
+  kitchenAddress: "Knowledge Park III, Near Galgotias Campus, Greater Noida, UP - 201310",
+
+  heroBadge: "🔥 #1 Student & Office Tiffin Service in Greater Noida",
+  heroHeadline: "Ghar Jaisa Swad, Roz Aapke Gate Par",
+  heroTagline: "Fresh, hygienic & authentic North Indian homemade meals cooked daily with premium ingredients and zero preservatives.",
+  heroBannerImage: "https://images.unsplash.com/photo-1613292443284-8d10ef9383fe?w=1200&auto=format&fit=crop&q=80",
+  thaliImage: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=800&auto=format&fit=crop&q=80",
+  vegThaliImage: "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=600&auto=format&fit=crop&q=80",
+  nonVegThaliImage: "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=600&auto=format&fit=crop&q=80",
+
+  bankAccountName: "Bring My Bite Foods",
+  bankAccountNumber: "900484898401",
+  bankIfscCode: "UTIB0000123",
+  bankName: "Axis Bank",
+  bankBranch: "Greater Noida Alpha 1 Branch",
+  upiId: "9004848984@axisbank",
+  upiQrImage: "https://images.unsplash.com/photo-1556742049-0a67e5572263?w=500&auto=format&fit=crop&q=60",
+
+  packages: {
+    veg: {
+      dailyPrice: 110,
+      monthlyPrice: 2999,
+      description: "Shuddh Shakahari Ghar Ka Khana",
+      itemsIncluded: "4 Butter Tawa Rotis + Dal Tadka + Seasonal Sabzi + Jeera Rice + Salad & Pickle",
+    },
+    egg: {
+      dailyPrice: 130,
+      monthlyPrice: 3499,
+      description: "High-Protein Double Egg Curry Combo",
+      itemsIncluded: "2-Egg Rich Curry + 4 Soft Rotis + Steamed Rice + Dal + Fresh Salad",
+    },
+    nonVeg: {
+      dailyPrice: 160,
+      monthlyPrice: 4199,
+      description: "Desi Style Special Chicken Thali",
+      itemsIncluded: "Homestyle Chicken Curry (3 Pcs) + 4 Rotis + Rice + Salad & Raita",
+    },
+    trial: {
+      price: 99,
+      description: "Single Meal Taste Experience (Zero Commitment)",
+    },
+  },
+
+  deliveryCharge: 0,
+  freeDeliveryAbove: 0,
+  deliverySlots: {
+    lunchTime: "12:30 PM - 02:00 PM",
+    dinnerTime: "07:30 PM - 09:30 PM",
+    lunchCutoff: "10:30 AM",
+    dinnerCutoff: "05:30 PM",
+  },
+  deliveryLocations: "Galgotias University (Gate 1 & 2), Sharda University, Bennett University, Knowledge Park Hostels, Pari Chowk",
+
+  orderFormNote: "Payment confirmation ke baad 15 minute ke andar WhatsApp par order token bheja jata hai.",
+  registrationDisclaimer: "By registering you agree to daily meal delivery cutoff timings.",
+
   superAdminPin: "6655",
   adminPin: "6655",
   managerPin: "4433",
   kitchenPin: "1234",
-  upiId: "9004848984@axisbank",
-  upiQrImage: "https://images.unsplash.com/photo-1556742049-0a67e5572263?w=500&auto=format&fit=crop&q=60",
-  whatsappNumber: "919004848984",
-  phone: "+91 9004848984",
-  email: "support@bringmybite.com",
-  heroTagline: "Ghar Jaisa Swad, Roz Aapke College & Office Gate Tak",
-  heroBannerImage: "https://images.unsplash.com/photo-1613292443284-8d10ef9383fe?w=1200&auto=format&fit=crop&q=80",
-  thaliImage: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=800&auto=format&fit=crop&q=80",
-  deliverySlots: {
-    lunchTime: "12:30 PM - 02:00 PM",
-    dinnerTime: "07:30 PM - 09:30 PM",
-  },
-  deliveryLocations: "Galgotias University (Gate 1 & 2), Sharda University, Bennett University, Knowledge Park Hostels",
-  prices: {
-    vegDaily: 110,
-    vegMonthly: 2999,
-    eggDaily: 130,
-    eggMonthly: 3499,
-    nonVegDaily: 160,
-    nonVegMonthly: 4199,
-    trialMeal: 99,
-    deliveryCharge: 0,
-  },
 };
 
-const CONFIG_KEY = "bmb_live_site_config_v3";
+const CONFIG_KEY = "bmb_live_site_config_v4";
 
 export const getSiteConfig = (): SiteConfig => {
   try {
