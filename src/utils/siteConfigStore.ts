@@ -19,7 +19,6 @@ export interface SiteConfig {
   email: string;
   kitchenAddress: string;
 
-  // Complete Banking Suite
   bankAccountName: string;
   bankAccountNumber: string;
   bankIfscCode: string;
@@ -28,17 +27,14 @@ export interface SiteConfig {
   upiId: string;
   upiQrImage: string;
 
-  // Media
   heroBadge: string;
   heroHeadline: string;
   heroTagline: string;
   heroBannerImage: string;
   thaliImage: string;
 
-  // Exactly 3 Core Daily Thalis
   dishes: DynamicDish[];
 
-  // Exactly 3 Monthly Subscriptions
   packages: {
     veg: { dailyPrice: number; monthlyPrice: number; description: string; itemsIncluded: string };
     egg: { dailyPrice: number; monthlyPrice: number; description: string; itemsIncluded: string };
@@ -76,62 +72,61 @@ export const DEFAULT_CONFIG: SiteConfig = {
   upiQrImage: "https://images.unsplash.com/photo-1556742049-0a67e5572263?w=500&auto=format&fit=crop&q=60",
 
   heroBadge: "🔥 #1 Student & Office Tiffin Service in Greater Noida",
-  heroHeadline: "Ghar Jaisa Swad, Roz Aapke Gate Par",
-  heroTagline: "Fresh, hygienic & authentic homemade North Indian meals cooked daily with premium ingredients and zero preservatives.",
+  heroHeadline: "Homely Food. Delivered with Care.",
+  heroTagline: "Premium hygienic tiffin service for Students & Working Professionals.",
   heroBannerImage: "https://images.unsplash.com/photo-1613292443284-8d10ef9383fe?w=1920&auto=format&fit=crop&q=80",
   thaliImage: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=600&auto=format&fit=crop&q=80",
 
-  // ONLY 3 CORE THALIS
+  // STRICT 3 CORE THALIS WITH EXACT ₹80, ₹100, ₹120 PRICING
   dishes: [
     {
       id: "dish-veg",
-      name: "Standard North Indian Veg Thali",
+      name: "Pure Veg Thali",
       category: "Veg",
-      price: 110,
-      items: "4 Butter Tawa Rotis + Special Sabzi + Dal Fry + Jeera Rice + Salad & Pickle",
+      price: 80,
+      items: "4 Soft Tawa Rotis + Seasonal Dal + Green Sabzi + Steamed Rice + Salad & Pickle",
       imageUrl: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=600&auto=format&fit=crop&q=80",
       badge: "Best Seller ⭐",
       isAvailable: true,
     },
     {
       id: "dish-egg",
-      name: "Double Egg Curry Special Thali",
+      name: "Egg Delight Thali",
       category: "Egg",
-      price: 130,
-      items: "2-Egg Rich Curry + 4 Soft Rotis + Steamed Rice + Dal + Fresh Salad",
+      price: 100,
+      items: "2-Egg Rich Homestyle Curry + 4 Rotis + Steamed Rice + Yellow Dal + Fresh Salad",
       imageUrl: "https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?w=600&auto=format&fit=crop&q=80",
       badge: "High Protein 💪",
       isAvailable: true,
     },
     {
       id: "dish-nonveg",
-      name: "Homestyle Chicken Curry Thali",
+      name: "Chicken Curry Thali",
       category: "Non-Veg",
-      price: 160,
-      items: "Desi Style Chicken Curry (3 Pcs) + 4 Rotis + Steamed Rice + Raita & Salad",
+      price: 120,
+      items: "Desi Chicken Curry (3 Pcs) + 4 Rotis + Steamed Rice + Salad & Raita",
       imageUrl: "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=600&auto=format&fit=crop&q=80",
       badge: "Chef Special 🍗",
       isAvailable: true,
     },
   ],
 
-  // ONLY 3 MONTHLY PACKAGES
   packages: {
     veg: {
-      dailyPrice: 110,
-      monthlyPrice: 2999,
+      dailyPrice: 80,
+      monthlyPrice: 2400,
       description: "Shuddh Shakahari Ghar Ka Khana",
       itemsIncluded: "4 Butter Tawa Rotis + Dal Tadka + Seasonal Sabzi + Jeera Rice + Salad & Pickle",
     },
     egg: {
-      dailyPrice: 130,
-      monthlyPrice: 3499,
+      dailyPrice: 100,
+      monthlyPrice: 2999,
       description: "High-Protein Double Egg Curry Combo",
       itemsIncluded: "2-Egg Rich Curry + 4 Soft Rotis + Steamed Rice + Dal + Fresh Salad",
     },
     nonVeg: {
-      dailyPrice: 160,
-      monthlyPrice: 4199,
+      dailyPrice: 120,
+      monthlyPrice: 3599,
       description: "Desi Style Special Chicken Thali",
       itemsIncluded: "Homestyle Chicken Curry (3 Pcs) + 4 Rotis + Rice + Salad & Raita",
     },
@@ -149,7 +144,8 @@ export const DEFAULT_CONFIG: SiteConfig = {
   kitchenPin: "1234",
 };
 
-const CONFIG_KEY = "bmb_live_site_config_v7";
+// Unique key to automatically clear outdated browser cache
+const CONFIG_KEY = "bmb_live_site_config_v9_fixed_prices";
 
 export const getSiteConfig = (): SiteConfig => {
   try {
