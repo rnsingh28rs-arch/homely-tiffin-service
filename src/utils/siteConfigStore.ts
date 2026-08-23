@@ -4,8 +4,8 @@ export interface SiteConfig {
   legalEntityName: string;
   fssaiNumber: string;
   gstNumber: string;
-  phone: string;
-  whatsappNumber: string;
+  phone: string; // Calling Number (e.g. +91 9004848984)
+  whatsappNumber: string; // WhatsApp Business Number (e.g. 9193XXXXXXXX)
   email: string;
   kitchenAddress: string;
 
@@ -27,7 +27,31 @@ export interface SiteConfig {
   upiId: string;
   upiQrImage: string;
 
-  // Subscriptions & Meal Packages
+  // Single Thalis / Instant Order Meals
+  singleThalis: {
+    miniVeg: {
+      name: string;
+      price: number;
+      items: string;
+    };
+    standardVeg: {
+      name: string;
+      price: number;
+      items: string;
+    };
+    eggSpecial: {
+      name: string;
+      price: number;
+      items: string;
+    };
+    chickenSpecial: {
+      name: string;
+      price: number;
+      items: string;
+    };
+  };
+
+  // Subscriptions & Monthly Packages
   packages: {
     veg: {
       dailyPrice: number;
@@ -81,7 +105,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
   fssaiNumber: "22724923000542",
   gstNumber: "09AAFCB1234F1Z5",
   phone: "+91 9004848984",
-  whatsappNumber: "919004848984",
+  whatsappNumber: "919300000000", // Yahan Super Admin panel se apna 93... WhatsApp Business number save karein
   email: "support@bringmybite.com",
   kitchenAddress: "Knowledge Park III, Near Galgotias Campus, Greater Noida, UP - 201310",
 
@@ -100,6 +124,29 @@ export const DEFAULT_CONFIG: SiteConfig = {
   bankBranch: "Greater Noida Alpha 1 Branch",
   upiId: "9004848984@axisbank",
   upiQrImage: "https://images.unsplash.com/photo-1556742049-0a67e5572263?w=500&auto=format&fit=crop&q=60",
+
+  singleThalis: {
+    miniVeg: {
+      name: "Mini Daily Veg Thali",
+      price: 89,
+      items: "3 Tawa Rotis + Dal Tadka + Seasonal Sabzi + Salad",
+    },
+    standardVeg: {
+      name: "Standard North Indian Thali",
+      price: 110,
+      items: "4 Butter Rotis + Paneer/Special Sabzi + Dal Fry + Jeera Rice + Salad & Pickle",
+    },
+    eggSpecial: {
+      name: "High-Protein Double Egg Thali",
+      price: 130,
+      items: "2-Egg Curry + 4 Butter Rotis + Steamed Rice + Dal + Salad",
+    },
+    chickenSpecial: {
+      name: "Homestyle Chicken Special Thali",
+      price: 160,
+      items: "Desi Chicken Curry (3 Pcs) + 4 Rotis + Steamed Rice + Raita & Salad",
+    },
+  },
 
   packages: {
     veg: {
@@ -145,7 +192,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
   kitchenPin: "1234",
 };
 
-const CONFIG_KEY = "bmb_live_site_config_v4";
+const CONFIG_KEY = "bmb_live_site_config_v5";
 
 export const getSiteConfig = (): SiteConfig => {
   try {
