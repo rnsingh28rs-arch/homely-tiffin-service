@@ -29,7 +29,7 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     saveSiteConfig(config);
-    setSaveMessage('Saari settings successfully live save ho gayi hain!');
+    setSaveMessage('Saari settings aur prices successfully live save ho gayi hain!');
     setTimeout(() => setSaveMessage(''), 4000);
   };
 
@@ -77,7 +77,7 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
               type="submit"
               className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl transition shadow-lg shadow-amber-500/20"
             >
-              Unlock Control Center
+              Unlock Full Control Center
             </button>
 
             {onClose && (
@@ -97,16 +97,17 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-4 sm:p-8">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
           <div>
             <div className="flex items-center gap-2">
               <span className="px-2.5 py-1 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-full text-xs font-bold">
-                👑 Super Admin
+                👑 Super Admin Master
               </span>
               <h1 className="text-2xl font-black">Bring My Bite Control Center</h1>
             </div>
-            <p className="text-slate-400 text-sm mt-1">Live Pricing, Payment, Contact & PINs Management</p>
+            <p className="text-slate-400 text-sm mt-1">Live Pricing, Packages, Payments, Images & Security PINs</p>
           </div>
 
           <div className="flex gap-2">
@@ -134,111 +135,236 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
         )}
 
         <form onSubmit={handleSave} className="mt-6 space-y-6">
+          {/* Section 1: Business & Payment Info */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
             <h3 className="text-lg font-bold text-amber-400 mb-4 flex items-center gap-2">
-              💰 Live Meal Pricing (₹)
+              💳 Business & Payment Information
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Standard Daily Meal (₹)</label>
+                <label className="block text-xs text-slate-400 mb-1 font-semibold">UPI ID (VPA)</label>
                 <input
-                  type="number"
-                  value={config.prices.dailyStandard}
-                  onChange={(e) => handlePriceChange('dailyStandard', e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold"
+                  type="text"
+                  value={config.upiId}
+                  onChange={(e) => setConfig({ ...config, upiId: e.target.value })}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-white font-mono"
                 />
               </div>
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Mini Daily Meal (₹)</label>
+                <label className="block text-xs text-slate-400 mb-1 font-semibold">WhatsApp Number</label>
                 <input
-                  type="number"
-                  value={config.prices.dailyMini}
-                  onChange={(e) => handlePriceChange('dailyMini', e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold"
+                  type="text"
+                  value={config.whatsappNumber}
+                  onChange={(e) => setConfig({ ...config, whatsappNumber: e.target.value })}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-white"
                 />
               </div>
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Trial Meal (₹)</label>
+                <label className="block text-xs text-slate-400 mb-1 font-semibold">Display Phone</label>
                 <input
-                  type="number"
-                  value={config.prices.trialMeal}
-                  onChange={(e) => handlePriceChange('trialMeal', e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold"
+                  type="text"
+                  value={config.phone}
+                  onChange={(e) => setConfig({ ...config, phone: e.target.value })}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-white"
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="block text-xs text-slate-400 mb-1 font-semibold">Support Email</label>
+                <input
+                  type="email"
+                  value={config.email}
+                  onChange={(e) => setConfig({ ...config, email: e.target.value })}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-white"
                 />
               </div>
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Monthly Standard (₹)</label>
+                <label className="block text-xs text-slate-400 mb-1 font-semibold">Delivery Charge (₹)</label>
                 <input
                   type="number"
-                  value={config.prices.monthlyStandard}
-                  onChange={(e) => handlePriceChange('monthlyStandard', e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-slate-400 mb-1">Monthly Mini (₹)</label>
-                <input
-                  type="number"
-                  value={config.prices.monthlyMini}
-                  onChange={(e) => handlePriceChange('monthlyMini', e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold"
+                  value={config.prices.deliveryCharge}
+                  onChange={(e) => handlePriceChange('deliveryCharge', e.target.value)}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-white font-bold"
                 />
               </div>
             </div>
           </div>
 
+          {/* Section 2: Complete Meal Pricing */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
             <h3 className="text-lg font-bold text-amber-400 mb-4 flex items-center gap-2">
-              💳 Payment & Business Info
+              💰 Live Meal & Subscription Pricing (₹)
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+                <span className="text-xs font-bold text-emerald-400 uppercase">🌱 Pure Veg</span>
+                <div className="mt-2 space-y-2">
+                  <div>
+                    <label className="text-[11px] text-slate-400">Daily Meal (₹)</label>
+                    <input
+                      type="number"
+                      value={config.prices.vegDaily}
+                      onChange={(e) => handlePriceChange('vegDaily', e.target.value)}
+                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white font-bold text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] text-slate-400">Monthly Plan (₹)</label>
+                    <input
+                      type="number"
+                      value={config.prices.vegMonthly}
+                      onChange={(e) => handlePriceChange('vegMonthly', e.target.value)}
+                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white font-bold text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+                <span className="text-xs font-bold text-yellow-400 uppercase">🍳 Egg Special</span>
+                <div className="mt-2 space-y-2">
+                  <div>
+                    <label className="text-[11px] text-slate-400">Daily Meal (₹)</label>
+                    <input
+                      type="number"
+                      value={config.prices.eggDaily}
+                      onChange={(e) => handlePriceChange('eggDaily', e.target.value)}
+                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white font-bold text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] text-slate-400">Monthly Plan (₹)</label>
+                    <input
+                      type="number"
+                      value={config.prices.eggMonthly}
+                      onChange={(e) => handlePriceChange('eggMonthly', e.target.value)}
+                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white font-bold text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+                <span className="text-xs font-bold text-rose-400 uppercase">🍗 Non-Veg</span>
+                <div className="mt-2 space-y-2">
+                  <div>
+                    <label className="text-[11px] text-slate-400">Daily Meal (₹)</label>
+                    <input
+                      type="number"
+                      value={config.prices.nonVegDaily}
+                      onChange={(e) => handlePriceChange('nonVegDaily', e.target.value)}
+                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white font-bold text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] text-slate-400">Monthly Plan (₹)</label>
+                    <input
+                      type="number"
+                      value={config.prices.nonVegMonthly}
+                      onChange={(e) => handlePriceChange('nonVegMonthly', e.target.value)}
+                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white font-bold text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+                <span className="text-xs font-bold text-indigo-400 uppercase">🍱 Trial Meal</span>
+                <div className="mt-2 space-y-2">
+                  <div>
+                    <label className="text-[11px] text-slate-400">Trial Meal Single (₹)</label>
+                    <input
+                      type="number"
+                      value={config.prices.trialMeal}
+                      onChange={(e) => handlePriceChange('trialMeal', e.target.value)}
+                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white font-bold text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Section 3: Delivery Slots & Locations */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+            <h3 className="text-lg font-bold text-amber-400 mb-4 flex items-center gap-2">
+              🚚 Delivery Timing & Gate Locations
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs text-slate-400 mb-1">UPI ID (VPA)</label>
+                <label className="block text-xs text-slate-400 mb-1">Lunch Delivery Window</label>
                 <input
                   type="text"
-                  value={config.upiId}
-                  onChange={(e) => setConfig({ ...config, upiId: e.target.value })}
+                  value={config.deliverySlots.lunchTime}
+                  onChange={(e) =>
+                    setConfig({
+                      ...config,
+                      deliverySlots: { ...config.deliverySlots, lunchTime: e.target.value },
+                    })
+                  }
                   className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white"
                 />
               </div>
               <div>
-                <label className="block text-xs text-slate-400 mb-1">WhatsApp Number</label>
+                <label className="block text-xs text-slate-400 mb-1">Dinner Delivery Window</label>
                 <input
                   type="text"
-                  value={config.whatsappNumber}
-                  onChange={(e) => setConfig({ ...config, whatsappNumber: e.target.value })}
+                  value={config.deliverySlots.dinnerTime}
+                  onChange={(e) =>
+                    setConfig({
+                      ...config,
+                      deliverySlots: { ...config.deliverySlots, dinnerTime: e.target.value },
+                    })
+                  }
                   className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white"
                 />
               </div>
-              <div>
-                <label className="block text-xs text-slate-400 mb-1">Display Phone Number</label>
+              <div className="sm:col-span-2">
+                <label className="block text-xs text-slate-400 mb-1">Covered Gates / Colleges</label>
                 <input
                   type="text"
-                  value={config.phone}
-                  onChange={(e) => setConfig({ ...config, phone: e.target.value })}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                  value={config.deliveryLocations}
+                  onChange={(e) => setConfig({ ...config, deliveryLocations: e.target.value })}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm"
                 />
               </div>
-              <div>
-                <label className="block text-xs text-slate-400 mb-1">Support Email</label>
-                <input
-                  type="email"
-                  value={config.email}
-                  onChange={(e) => setConfig({ ...config, email: e.target.value })}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white"
-                />
-              </div>
+            </div>
+          </div>
+
+          {/* Section 4: Images & Branding URLs */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+            <h3 className="text-lg font-bold text-amber-400 mb-4 flex items-center gap-2">
+              🖼️ Live Photos & QR Code URLs
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
                 <label className="block text-xs text-slate-400 mb-1">UPI QR Code Image URL</label>
                 <input
                   type="text"
                   value={config.upiQrImage}
                   onChange={(e) => setConfig({ ...config, upiQrImage: e.target.value })}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm"
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs font-mono"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Hero Banner Photo URL</label>
+                <input
+                  type="text"
+                  value={config.heroBannerImage}
+                  onChange={(e) => setConfig({ ...config, heroBannerImage: e.target.value })}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs font-mono"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Thali Feature Photo URL</label>
+                <input
+                  type="text"
+                  value={config.thaliImage}
+                  onChange={(e) => setConfig({ ...config, thaliImage: e.target.value })}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs font-mono"
                 />
               </div>
               <div className="sm:col-span-2">
-                <label className="block text-xs text-slate-400 mb-1">Hero Section Tagline</label>
+                <label className="block text-xs text-slate-400 mb-1">Hero Tagline</label>
                 <input
                   type="text"
                   value={config.heroTagline}
@@ -249,11 +375,12 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
             </div>
           </div>
 
+          {/* Section 5: Security PINs */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
             <h3 className="text-lg font-bold text-amber-400 mb-4 flex items-center gap-2">
-              🔒 Access Control PINs
+              🔒 Security & Portal PINs
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
               <div>
                 <label className="block text-xs text-slate-400 mb-1">Super Admin PIN</label>
                 <input
@@ -273,6 +400,15 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                 />
               </div>
               <div>
+                <label className="block text-xs text-slate-400 mb-1">Manager PIN</label>
+                <input
+                  type="text"
+                  value={config.managerPin}
+                  onChange={(e) => setConfig({ ...config, managerPin: e.target.value })}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono text-center"
+                />
+              </div>
+              <div>
                 <label className="block text-xs text-slate-400 mb-1">Kitchen Display PIN</label>
                 <input
                   type="text"
@@ -284,12 +420,13 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
             </div>
           </div>
 
-          <div className="sticky bottom-4 bg-slate-900/90 backdrop-blur border border-slate-800 p-4 rounded-2xl flex justify-end">
+          {/* Sticky Submit Bar */}
+          <div className="sticky bottom-4 bg-slate-900/95 backdrop-blur border border-slate-800 p-4 rounded-2xl flex justify-end shadow-2xl">
             <button
               type="submit"
-              className="px-8 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl shadow-lg shadow-amber-500/20 transition flex items-center gap-2"
+              className="px-8 py-3.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl shadow-lg shadow-amber-500/20 transition flex items-center gap-2 text-base"
             >
-              💾 Save Live Changes
+              💾 Save All Live Changes
             </button>
           </div>
         </form>
