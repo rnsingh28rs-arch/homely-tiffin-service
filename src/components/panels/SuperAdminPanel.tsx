@@ -19,7 +19,7 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [pinInput, setPinInput] = useState<string>('');
   const [pinError, setPinError] = useState<string>('');
-  const [activeTab, setActiveTab] = useState<TabType>('pnlDashboard');
+  const [activeTab, setActiveTab] = useState<TabType>('dishesManager');
   const [saveToast, setSaveToast] = useState<string>('');
   const [showPins, setShowPins] = useState<boolean>(false);
 
@@ -27,10 +27,10 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
   const [showNewDishModal, setShowNewDishModal] = useState(false);
   const [newDishName, setNewDishName] = useState('');
   const [newDishCat, setNewDishCat] = useState<DynamicDish['category']>('Veg');
-  const [newDishPrice, setNewDishPrice] = useState<number>(99);
+  const [newDishPrice, setNewDishPrice] = useState<number>(80);
   const [newDishItems, setNewDishItems] = useState('');
   const [newDishImg, setNewDishImg] = useState('');
-  const [newDishBadge, setNewDishBadge] = useState('New Special 🔥');
+  const [newDishBadge, setNewDishBadge] = useState('Chef Special 🔥');
 
   const tabScrollRef = useRef<HTMLDivElement>(null);
 
@@ -63,7 +63,7 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     saveSiteConfig(config);
-    setSaveToast('All configurations & dynamic dishes updated live!');
+    setSaveToast('All changes saved and updated live!');
     setTimeout(() => setSaveToast(''), 4000);
   };
 
@@ -91,23 +91,23 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
     setConfig(updatedConfig);
     saveSiteConfig(updatedConfig);
 
-    // Reset Form
     setNewDishName('');
     setNewDishItems('');
-    setNewDishPrice(99);
+    setNewDishPrice(80);
     setNewDishImg('');
     setShowNewDishModal(false);
-    setSaveToast(`New Dish "${created.name}" created and connected live to Customer Order Form!`);
+    setSaveToast(`Dish "${created.name}" added to live menu!`);
     setTimeout(() => setSaveToast(''), 4000);
   };
 
+  // Instant Working Delete Dish
   const handleDeleteDish = (dishId: string) => {
-    if (window.confirm('Are you sure you want to delete this dish from the live menu?')) {
+    if (window.confirm('Kya aap sach me is dish ko menu se hatana chahte hain?')) {
       const updated = config.dishes.filter((d) => d.id !== dishId);
       const updatedConfig = { ...config, dishes: updated };
       setConfig(updatedConfig);
       saveSiteConfig(updatedConfig);
-      setSaveToast('Dish removed from live menu!');
+      setSaveToast('Dish successfully deleted from live menu!');
       setTimeout(() => setSaveToast(''), 4000);
     }
   };
@@ -119,21 +119,18 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
     saveSiteConfig(updatedConfig);
   };
 
-  // Full P&L Analytics (Revenue - Mandi Expenses - Staff Payroll)
   const grossGMV = orders.filter((o) => o.status !== 'rejected').reduce((s, o) => s + o.amount, 0);
   const totalMandiExpenses = funds.filter((f) => f.status === 'approved').reduce((s, f) => s + f.totalBudget, 0);
   const totalPayrollPaid = salaryLedger.reduce((s, p) => s + p.netPaid, 0);
   const totalExpenses = totalMandiExpenses + totalPayrollPaid;
   const netPureProfit = grossGMV - totalExpenses;
-  const totalThalis = orders.filter((o) => o.status !== 'rejected').length;
-  const costPerThali = totalThalis > 0 ? Math.round(totalExpenses / totalThalis) : 0;
 
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-[#111A14] flex items-center justify-center p-4 text-[#FAF7F2]">
         <div className="max-w-md w-full bg-[#18261E] border border-[#D97706]/30 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-tr from-[#B45309] to-[#F59E0B] text-white rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl shadow-lg shadow-[#D97706]/20">
+            <div className="w-16 h-16 bg-gradient-to-tr from-[#B45309] to-[#F59E0B] text-white rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl shadow-lg">
               👑
             </div>
             <h2 className="text-2xl font-black text-white">Super Admin Control Center</h2>
@@ -151,7 +148,7 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                 value={pinInput}
                 onChange={(e) => setPinInput(e.target.value)}
                 placeholder="••••"
-                className="w-full px-4 py-3.5 bg-[#0F1A13] border border-[#23382B] focus:border-[#F59E0B] rounded-2xl text-white text-center text-2xl tracking-[0.4em] outline-none transition"
+                className="w-full px-4 py-3.5 bg-[#0F1A13] border border-[#23382B] focus:border-[#F59E0B] rounded-2xl text-white text-center text-2xl tracking-[0.4em] outline-none"
                 autoFocus
               />
               {pinError && <p className="text-rose-400 text-xs font-medium mt-2 text-center">{pinError}</p>}
@@ -161,7 +158,7 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
               type="submit"
               className="w-full py-3.5 bg-gradient-to-r from-[#D97706] to-[#F59E0B] text-[#111A14] font-black rounded-2xl shadow-xl hover:brightness-110 transition cursor-pointer"
             >
-              Unlock Master Center
+              Unlock Control Center
             </button>
 
             {onClose && (
@@ -195,7 +192,7 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                   Live Master
                 </span>
               </div>
-              <p className="text-emerald-300/60 text-xs">P&L Financials, Dynamic Combos, Banking, Staff & Security</p>
+              <p className="text-emerald-300/60 text-xs">Menu Management, Dishes Delete/Edit & Bank Accounts</p>
             </div>
           </div>
 
@@ -223,32 +220,29 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
           </div>
         </div>
 
-        {/* Tab Navigation with Left & Right Scroll Buttons */}
+        {/* Tab Navigation with Scroll Arrows */}
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 flex items-center border-t border-[#1F3326]">
-          {/* Left Arrow Button */}
           <button
             type="button"
             onClick={() => handleScrollTabs('left')}
-            className="p-2 text-amber-400 hover:text-white bg-[#0F1A13] hover:bg-[#203326] border border-[#243B2D] rounded-xl text-xs font-bold mr-1 z-10 transition cursor-pointer shadow-md"
-            title="Scroll Left"
+            className="p-2 text-amber-400 hover:text-white bg-[#0F1A13] hover:bg-[#203326] border border-[#243B2D] rounded-xl text-xs font-bold mr-1 z-10 transition cursor-pointer"
           >
             ◀
           </button>
 
-          {/* Scrollable Container */}
           <div
             ref={tabScrollRef}
             className="flex-1 flex gap-2 overflow-x-auto py-2.5 scrollbar-none scroll-smooth"
           >
             {[
+              { id: 'dishesManager', label: `🍛 Dishes & Rates (${config.dishes?.length || 0})`, icon: '🍱' },
               { id: 'pnlDashboard', label: '📊 Financial P&L & Profit', icon: '💰' },
-              { id: 'dishesManager', label: `🍛 Dynamic Menu (${config.dishes?.length || 0})`, icon: '🍱' },
               { id: 'subscriptions', label: '📅 Monthly Subscriptions', icon: '📋' },
               { id: 'banking', label: '🏦 Bank Account & UPI QR', icon: '💳' },
               { id: 'brand', label: '🏢 WhatsApp & Compliance', icon: '🏛️' },
-              { id: 'banners', label: '🎨 Banners & Image Specs', icon: '🖼️' },
+              { id: 'banners', label: '🎨 Banners & Specs', icon: '🖼️' },
               { id: 'operations', label: '🚚 Delivery Gates', icon: '⏰' },
-              { id: 'security', label: '🔒 Staff Access PINs', icon: '🔑' },
+              { id: 'security', label: '🔒 Security PINs', icon: '🔑' },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -265,12 +259,10 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
             ))}
           </div>
 
-          {/* Right Arrow Button */}
           <button
             type="button"
             onClick={() => handleScrollTabs('right')}
-            className="p-2 text-amber-400 hover:text-white bg-[#0F1A13] hover:bg-[#203326] border border-[#243B2D] rounded-xl text-xs font-bold ml-1 z-10 transition cursor-pointer shadow-md"
-            title="Scroll Right"
+            className="p-2 text-amber-400 hover:text-white bg-[#0F1A13] hover:bg-[#203326] border border-[#243B2D] rounded-xl text-xs font-bold ml-1 z-10 transition cursor-pointer"
           >
             ▶
           </button>
@@ -286,50 +278,17 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
           </div>
         )}
 
-        {/* TAB 0: EXECUTIVE FINANCIAL P&L */}
-        {activeTab === 'pnlDashboard' && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
-              <div className="bg-[#15231B] border border-amber-500/40 p-6 rounded-3xl">
-                <span className="text-xs font-bold text-slate-400 uppercase">Gross Sales (GMV)</span>
-                <div className="text-3xl font-black text-amber-400 mt-2">₹{grossGMV.toLocaleString()}</div>
-                <p className="text-[11px] text-emerald-300/70 mt-1">Total revenue collected from meals</p>
-              </div>
-
-              <div className="bg-[#15231B] border border-rose-500/40 p-6 rounded-3xl">
-                <span className="text-xs font-bold text-slate-400 uppercase">Mandi + Payroll Expense</span>
-                <div className="text-3xl font-black text-rose-400 mt-2">₹{totalExpenses.toLocaleString()}</div>
-                <p className="text-[11px] text-slate-400 mt-1">
-                  Mandi: ₹{totalMandiExpenses} • Staff: ₹{totalPayrollPaid}
-                </p>
-              </div>
-
-              <div className="bg-[#15231B] border border-emerald-500/40 p-6 rounded-3xl">
-                <span className="text-xs font-bold text-slate-400 uppercase">Net Company Profit</span>
-                <div className="text-3xl font-black text-emerald-400 mt-2">₹{netPureProfit.toLocaleString()}</div>
-                <p className="text-[11px] text-emerald-300 mt-1">Revenue minus all operational costs</p>
-              </div>
-
-              <div className="bg-[#15231B] border border-[#243B2D] p-6 rounded-3xl">
-                <span className="text-xs font-bold text-slate-400 uppercase">Expense / Thali</span>
-                <div className="text-3xl font-black text-white mt-2">₹{costPerThali}</div>
-                <p className="text-[11px] text-slate-400 mt-1">Avg cost per plate served</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 1: DYNAMIC DISHES & COMBOS ENGINE (CONNECTED TO CUSTOMER ORDER FORM) */}
+        {/* TAB 1: DISHES MANAGER WITH WORKING DELETE */}
         {activeTab === 'dishesManager' && (
           <div className="space-y-6">
             <div className="bg-[#15231B] border border-[#243B2D] rounded-3xl p-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
                 <div>
                   <h3 className="text-lg font-black text-amber-300 flex items-center gap-2">
-                    🍛 Dynamic Menu & Combos Engine
+                    🍛 Live Dishes & Pricing (Delete / Add Anytime)
                   </h3>
                   <p className="text-xs text-emerald-300/70 mt-0.5">
-                    Any dish added here updates immediately on the Live Customer Instant Order Form!
+                    Any dish deleted or added here updates immediately on the live website and order form!
                   </p>
                 </div>
 
@@ -338,31 +297,18 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                   onClick={() => setShowNewDishModal(true)}
                   className="px-5 py-2.5 bg-gradient-to-r from-[#D97706] to-[#F59E0B] text-slate-950 font-black text-xs rounded-xl shadow-lg hover:brightness-110 transition flex items-center gap-1.5 cursor-pointer"
                 >
-                  <span>➕</span> Add New Dish / Combo
+                  <span>➕</span> Add New Dish
                 </button>
               </div>
 
-              {/* Dynamic Dishes Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {/* Dishes Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                 {config.dishes?.map((dish) => (
                   <div
                     key={dish.id}
-                    className={`bg-[#0F1A13] border rounded-2xl p-4 flex flex-col justify-between space-y-3 transition ${
-                      dish.isAvailable ? 'border-[#243B2D]' : 'border-rose-500/30 opacity-60'
-                    }`}
+                    className="bg-[#0F1A13] border border-[#243B2D] rounded-2xl p-4 flex flex-col justify-between space-y-3"
                   >
                     <div>
-                      {dish.imageUrl && (
-                        <img
-                          src={dish.imageUrl}
-                          alt={dish.name}
-                          className="w-full h-36 object-cover rounded-xl border border-[#243B2D] mb-3"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=600&auto=format&fit=crop&q=80';
-                          }}
-                        />
-                      )}
-
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase bg-[#18271E] text-amber-300 border border-amber-500/30">
                           {dish.category}
@@ -374,12 +320,12 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                         )}
                       </div>
 
-                      <h4 className="text-sm font-black text-white mt-1.5">{dish.name}</h4>
-                      <p className="text-xs text-slate-400 mt-1 line-clamp-2">{dish.items}</p>
+                      <h4 className="text-base font-black text-white mt-2">{dish.name}</h4>
+                      <p className="text-xs text-slate-400 mt-1">{dish.items}</p>
                     </div>
 
                     <div className="pt-3 border-t border-[#1F3326] flex items-center justify-between">
-                      <span className="text-base font-black text-amber-400">₹{dish.price}</span>
+                      <span className="text-xl font-black text-amber-400">₹{dish.price}</span>
 
                       <div className="flex items-center gap-2">
                         <button
@@ -394,9 +340,10 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                         <button
                           type="button"
                           onClick={() => handleDeleteDish(dish.id)}
-                          className="px-2 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-lg text-[10px] font-bold cursor-pointer"
+                          className="px-3 py-1 bg-rose-600/30 hover:bg-rose-600 text-rose-200 hover:text-white rounded-lg text-xs font-black cursor-pointer transition"
+                          title="Delete this dish"
                         >
-                          Delete
+                          🗑️ Delete
                         </button>
                       </div>
                     </div>
@@ -408,11 +355,9 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
             {/* Modal to Add New Dish */}
             {showNewDishModal && (
               <div className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4">
-                <div className="relative max-w-lg w-full bg-[#15231B] border border-[#2B4534] rounded-3xl p-6 text-white space-y-4 shadow-2xl">
+                <div className="relative max-w-md w-full bg-[#15231B] border border-[#2B4534] rounded-3xl p-6 text-white space-y-4 shadow-2xl">
                   <div className="flex justify-between items-center border-b border-[#243B2D] pb-3">
-                    <h3 className="text-base font-black text-amber-300 flex items-center gap-2">
-                      <span>➕</span> Create New Dish or Rice Combo
-                    </h3>
+                    <h3 className="text-base font-black text-amber-300">➕ Add New Dish</h3>
                     <button
                       type="button"
                       onClick={() => setShowNewDishModal(false)}
@@ -422,13 +367,13 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                     </button>
                   </div>
 
-                  <form onSubmit={handleCreateNewDish} className="space-y-3.5">
+                  <form onSubmit={handleCreateNewDish} className="space-y-3">
                     <div>
-                      <label className="block text-[11px] font-bold text-slate-300 mb-1">Dish / Combo Name *</label>
+                      <label className="block text-[11px] font-bold text-slate-300 mb-1">Dish Name *</label>
                       <input
                         type="text"
                         required
-                        placeholder="e.g. Amritsari Chole Chawal Combo"
+                        placeholder="e.g. Special Paneer Thali"
                         value={newDishName}
                         onChange={(e) => setNewDishName(e.target.value)}
                         className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3 py-2 text-xs text-white outline-none"
@@ -446,8 +391,6 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                           <option value="Veg">🌱 Pure Veg</option>
                           <option value="Egg">🍳 Egg Special</option>
                           <option value="Non-Veg">🍗 Non-Veg Special</option>
-                          <option value="Rice Combo">🍚 Rice Combo Bowl</option>
-                          <option value="Snacks/Addon">🍟 Snacks / Addon</option>
                         </select>
                       </div>
 
@@ -465,40 +408,14 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                        Contents & Description (What's in the box) *
-                      </label>
+                      <label className="block text-[11px] font-bold text-slate-300 mb-1">Items Included (Description) *</label>
                       <textarea
                         rows={2}
                         required
-                        placeholder="e.g. 1 Bowl Spicy Chole + Steamed Jeera Rice + Onion Salad + Pickle"
+                        placeholder="e.g. 4 Butter Rotis + Dal + Paneer + Rice + Salad"
                         value={newDishItems}
                         onChange={(e) => setNewDishItems(e.target.value)}
                         className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3 py-2 text-xs text-white outline-none resize-none"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                        Dish Photo URL (Recommended Size: 600x600 px)
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="https://images.unsplash.com/... (Square 1:1 image)"
-                        value={newDishImg}
-                        onChange={(e) => setNewDishImg(e.target.value)}
-                        className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3 py-2 text-xs text-white font-mono outline-none"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-300 mb-1">Display Badge</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Best Seller ⭐ / Chef Special / High Protein"
-                        value={newDishBadge}
-                        onChange={(e) => setNewDishBadge(e.target.value)}
-                        className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3 py-2 text-xs text-white outline-none"
                       />
                     </div>
 
@@ -514,7 +431,7 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                         type="submit"
                         className="px-5 py-2 bg-gradient-to-r from-[#D97706] to-[#F59E0B] text-slate-950 text-xs font-black rounded-xl shadow-lg cursor-pointer"
                       >
-                        Save & Publish to Menu ➔
+                        Save & Add to Menu ➔
                       </button>
                     </div>
                   </form>
@@ -524,20 +441,36 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
           </div>
         )}
 
+        {/* TAB 2: P&L DASHBOARD */}
+        {activeTab === 'pnlDashboard' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
+              <div className="bg-[#15231B] border border-amber-500/40 p-6 rounded-3xl">
+                <span className="text-xs font-bold text-slate-400 uppercase">Gross Sales (GMV)</span>
+                <div className="text-3xl font-black text-amber-400 mt-2">₹{grossGMV.toLocaleString()}</div>
+              </div>
+              <div className="bg-[#15231B] border border-rose-500/40 p-6 rounded-3xl">
+                <span className="text-xs font-bold text-slate-400 uppercase">Total Expenses</span>
+                <div className="text-3xl font-black text-rose-400 mt-2">₹{totalExpenses.toLocaleString()}</div>
+              </div>
+              <div className="bg-[#15231B] border border-emerald-500/40 p-6 rounded-3xl">
+                <span className="text-xs font-bold text-slate-400 uppercase">Net Profit</span>
+                <div className="text-3xl font-black text-emerald-400 mt-2">₹{netPureProfit.toLocaleString()}</div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* OTHER CONFIG TABS */}
-        {activeTab !== 'pnlDashboard' && activeTab !== 'dishesManager' && (
+        {activeTab !== 'dishesManager' && activeTab !== 'pnlDashboard' && (
           <form onSubmit={handleSave} className="space-y-6">
-            {/* TAB 2: BANKING DETAILS & UPI */}
+            {/* BANKING */}
             {activeTab === 'banking' && (
               <div className="bg-[#15231B] border border-[#243B2D] rounded-3xl p-6 sm:p-8 space-y-6">
-                <div>
-                  <h3 className="text-base font-black text-amber-300">🏦 Official Banking & UPI QR Suite</h3>
-                  <p className="text-xs text-emerald-300/60 mt-0.5">Customer payments and checkout screen banking info</p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+                <h3 className="text-base font-black text-amber-300">🏦 Banking & UPI QR Suite</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                   <div>
-                    <label className="block text-xs font-bold text-emerald-200 mb-1.5">Primary UPI ID (VPA) *</label>
+                    <label className="block text-xs font-bold text-emerald-200 mb-1">UPI ID (VPA) *</label>
                     <input
                       type="text"
                       value={config.upiId}
@@ -545,9 +478,8 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                       className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-sm text-amber-300 font-mono font-bold outline-none"
                     />
                   </div>
-
                   <div>
-                    <label className="block text-xs font-bold text-emerald-200 mb-1.5">Account Beneficiary Name *</label>
+                    <label className="block text-xs font-bold text-emerald-200 mb-1">Beneficiary Name</label>
                     <input
                       type="text"
                       value={config.bankAccountName}
@@ -555,9 +487,8 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                       className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
                     />
                   </div>
-
                   <div>
-                    <label className="block text-xs font-bold text-emerald-200 mb-1.5">Bank Account Number *</label>
+                    <label className="block text-xs font-bold text-emerald-200 mb-1">Account Number</label>
                     <input
                       type="text"
                       value={config.bankAccountNumber}
@@ -565,118 +496,11 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                       className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-sm text-white font-mono outline-none"
                     />
                   </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-emerald-200 mb-1.5">IFSC Code *</label>
-                    <input
-                      type="text"
-                      value={config.bankIfscCode}
-                      onChange={(e) => setConfig({ ...config, bankIfscCode: e.target.value })}
-                      className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-sm text-white font-mono uppercase outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-emerald-200 mb-1.5">Bank Name & Branch</label>
-                    <input
-                      type="text"
-                      value={config.bankName}
-                      onChange={(e) => setConfig({ ...config, bankName: e.target.value })}
-                      className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-emerald-200 mb-1.5">Branch Location</label>
-                    <input
-                      type="text"
-                      value={config.bankBranch}
-                      onChange={(e) => setConfig({ ...config, bankBranch: e.target.value })}
-                      className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
-                    />
-                  </div>
-
-                  <div className="sm:col-span-3 bg-[#0F1A13] p-4 rounded-2xl border border-[#243B2D]">
-                    <div className="flex flex-col sm:flex-row items-center gap-4">
-                      {config.upiQrImage && (
-                        <img
-                          src={config.upiQrImage}
-                          alt="QR Code"
-                          className="w-24 h-24 object-cover rounded-xl border border-amber-500/40 bg-white p-1"
-                        />
-                      )}
-                      <div className="flex-1 w-full">
-                        <label className="block text-xs font-bold text-amber-300 mb-1">
-                          UPI QR Code Image URL (Recommended Size: 500x500 px Square)
-                        </label>
-                        <input
-                          type="text"
-                          value={config.upiQrImage}
-                          onChange={(e) => setConfig({ ...config, upiQrImage: e.target.value })}
-                          className="w-full bg-[#18271E] border border-[#243B2D] rounded-xl px-3.5 py-2 text-xs text-white font-mono outline-none"
-                        />
-                        <p className="text-[11px] text-slate-400 mt-1">
-                          Google Pay / PhonePe merchant QR image URL to display on customer checkout screen.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
             )}
 
-            {/* TAB 3: BANNERS & IMAGE RESOLUTION GUIDELINES */}
-            {activeTab === 'banners' && (
-              <div className="bg-[#15231B] border border-[#243B2D] rounded-3xl p-6 sm:p-8 space-y-6">
-                <div>
-                  <h3 className="text-base font-black text-amber-300">🎨 Banners & Image Size Guidelines</h3>
-                  <p className="text-xs text-emerald-300/60 mt-0.5">Strict pixel dimensions to keep photos sharp & responsive</p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <div className="sm:col-span-2 bg-[#0F1A13] p-4 rounded-2xl border border-amber-500/30">
-                    <span className="text-xs font-bold text-amber-400 block mb-1">📐 Recommended Image Dimensions:</span>
-                    <ul className="text-xs text-slate-300 space-y-1">
-                      <li>• <strong>Hero Top Banner:</strong> <span className="font-mono text-emerald-300">1920 x 800 px</span> (Landscape 16:9 / 21:9 - Clear food visual)</li>
-                      <li>• <strong>Thalis & Combo Dishes:</strong> <span className="font-mono text-emerald-300">600 x 600 px</span> (Square 1:1 ratio - WebP/JPG format)</li>
-                      <li>• <strong>UPI QR Image:</strong> <span className="font-mono text-emerald-300">500 x 500 px</span> (High resolution white background)</li>
-                    </ul>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-emerald-200 mb-1.5">Hero Top Badge Text</label>
-                    <input
-                      type="text"
-                      value={config.heroBadge}
-                      onChange={(e) => setConfig({ ...config, heroBadge: e.target.value })}
-                      className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-emerald-200 mb-1.5">Hero Headline</label>
-                    <input
-                      type="text"
-                      value={config.heroHeadline}
-                      onChange={(e) => setConfig({ ...config, heroHeadline: e.target.value })}
-                      className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
-                    />
-                  </div>
-
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs font-bold text-emerald-200 mb-1.5">Hero Banner Image URL (1920x800 px)</label>
-                    <input
-                      type="text"
-                      value={config.heroBannerImage}
-                      onChange={(e) => setConfig({ ...config, heroBannerImage: e.target.value })}
-                      className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-xs text-white font-mono outline-none"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* TAB 4: MONTHLY SUBSCRIPTION PACKAGES */}
+            {/* SUBSCRIPTIONS */}
             {activeTab === 'subscriptions' && (
               <div className="bg-[#15231B] border border-[#243B2D] rounded-3xl p-6 sm:p-8 space-y-6">
                 <h3 className="text-base font-black text-amber-300">📅 Monthly 30-Day Subscriptions</h3>
@@ -729,24 +553,22 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
               </div>
             )}
 
-            {/* TAB 5: BRAND & WHATSAPP */}
+            {/* BRAND */}
             {activeTab === 'brand' && (
               <div className="bg-[#15231B] border border-[#243B2D] rounded-3xl p-6 sm:p-8 space-y-6">
-                <h3 className="text-base font-black text-amber-300">🏛️ WhatsApp Business & Compliance</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-                  <div className="sm:col-span-2 bg-[#0F1A13] p-4 rounded-2xl border border-emerald-500/40">
-                    <label className="block text-xs font-black text-emerald-300 uppercase mb-1">
-                      💬 Official WhatsApp Business Number (For Orders & Alerts)
-                    </label>
+                <h3 className="text-base font-black text-amber-300">🏛️ WhatsApp & Compliance</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div>
+                    <label className="block text-xs font-bold text-emerald-200 mb-1">WhatsApp Business Number</label>
                     <input
                       type="text"
                       value={config.whatsappNumber}
                       onChange={(e) => setConfig({ ...config, whatsappNumber: e.target.value })}
-                      className="w-full bg-[#18271E] border border-emerald-500/50 rounded-xl px-4 py-2 text-sm text-emerald-200 font-mono font-bold outline-none"
+                      className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-sm text-white font-mono outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-emerald-200 mb-1.5">Voice Calling Phone</label>
+                    <label className="block text-xs font-bold text-emerald-200 mb-1">Calling Phone</label>
                     <input
                       type="text"
                       value={config.phone}
@@ -754,58 +576,46 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                       className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-sm text-white font-mono outline-none"
                     />
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold text-amber-300 mb-1.5">FSSAI License No.</label>
-                    <input
-                      type="text"
-                      value={config.fssaiNumber}
-                      onChange={(e) => setConfig({ ...config, fssaiNumber: e.target.value })}
-                      className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-sm text-amber-300 font-mono font-bold outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-amber-300 mb-1.5">GST Registration No.</label>
-                    <input
-                      type="text"
-                      value={config.gstNumber}
-                      onChange={(e) => setConfig({ ...config, gstNumber: e.target.value })}
-                      className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-sm text-amber-300 font-mono font-bold outline-none"
-                    />
-                  </div>
                 </div>
               </div>
             )}
 
-            {/* TAB 6: OPERATIONS */}
+            {/* BANNERS */}
+            {activeTab === 'banners' && (
+              <div className="bg-[#15231B] border border-[#243B2D] rounded-3xl p-6 sm:p-8 space-y-4">
+                <h3 className="text-base font-black text-amber-300">🎨 Banners</h3>
+                <div>
+                  <label className="block text-xs font-bold text-emerald-200 mb-1">Hero Headline</label>
+                  <input
+                    type="text"
+                    value={config.heroHeadline}
+                    onChange={(e) => setConfig({ ...config, heroHeadline: e.target.value })}
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* OPERATIONS */}
             {activeTab === 'operations' && (
-              <div className="bg-[#15231B] border border-[#243B2D] rounded-3xl p-6 sm:p-8 space-y-6">
-                <h3 className="text-base font-black text-amber-300">🚚 Delivery Slots & Locations</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="bg-[#15231B] border border-[#243B2D] rounded-3xl p-6 sm:p-8 space-y-4">
+                <h3 className="text-base font-black text-amber-300">🚚 Delivery Slots</h3>
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-emerald-200 mb-1.5">Lunch Window</label>
+                    <label className="block text-xs font-bold text-emerald-200 mb-1">Lunch Shift</label>
                     <input
                       type="text"
                       value={config.deliverySlots.lunchTime}
-                      onChange={(e) =>
-                        setConfig({
-                          ...config,
-                          deliverySlots: { ...config.deliverySlots, lunchTime: e.target.value },
-                        })
-                      }
+                      onChange={(e) => setConfig({ ...config, deliverySlots: { ...config.deliverySlots, lunchTime: e.target.value } })}
                       className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-emerald-200 mb-1.5">Dinner Window</label>
+                    <label className="block text-xs font-bold text-emerald-200 mb-1">Dinner Shift</label>
                     <input
                       type="text"
                       value={config.deliverySlots.dinnerTime}
-                      onChange={(e) =>
-                        setConfig({
-                          ...config,
-                          deliverySlots: { ...config.deliverySlots, dinnerTime: e.target.value },
-                        })
-                      }
+                      onChange={(e) => setConfig({ ...config, deliverySlots: { ...config.deliverySlots, dinnerTime: e.target.value } })}
                       className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
                     />
                   </div>
@@ -813,21 +623,21 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
               </div>
             )}
 
-            {/* TAB 7: SECURITY PINS */}
+            {/* SECURITY */}
             {activeTab === 'security' && (
               <div className="bg-[#15231B] border border-[#243B2D] rounded-3xl p-6 sm:p-8 space-y-6">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-base font-black text-amber-300">🔒 Portal Security PINs</h3>
+                  <h3 className="text-base font-black text-amber-300">🔒 Security PINs</h3>
                   <button
                     type="button"
                     onClick={() => setShowPins(!showPins)}
-                    className="px-3 py-1 bg-[#203326] text-emerald-300 text-xs font-bold rounded-xl border border-emerald-500/20 cursor-pointer"
+                    className="px-3 py-1 bg-[#203326] text-emerald-300 text-xs font-bold rounded-xl border border-emerald-500/20"
                   >
                     {showPins ? 'Hide' : 'Reveal'}
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-5">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   <div className="bg-[#0F1A13] p-4 rounded-2xl border border-amber-500/40">
                     <span className="text-xs font-bold text-amber-300 uppercase">Super Admin PIN</span>
                     <input
@@ -838,7 +648,7 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                     />
                   </div>
                   <div className="bg-[#0F1A13] p-4 rounded-2xl border border-[#243B2D]">
-                    <span className="text-xs font-bold text-emerald-200 uppercase">Admin Desk PIN</span>
+                    <span className="text-xs font-bold text-emerald-200 uppercase">Admin PIN</span>
                     <input
                       type={showPins ? 'text' : 'password'}
                       value={config.adminPin}
@@ -846,41 +656,17 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                       className="mt-2 w-full bg-[#18271E] border border-[#243B2D] rounded-xl px-3 py-2 text-center text-white font-mono font-bold text-lg outline-none"
                     />
                   </div>
-                  <div className="bg-[#0F1A13] p-4 rounded-2xl border border-[#243B2D]">
-                    <span className="text-xs font-bold text-emerald-200 uppercase">Manager PIN</span>
-                    <input
-                      type={showPins ? 'text' : 'password'}
-                      value={config.managerPin}
-                      onChange={(e) => setConfig({ ...config, managerPin: e.target.value })}
-                      className="mt-2 w-full bg-[#18271E] border border-[#243B2D] rounded-xl px-3 py-2 text-center text-white font-mono font-bold text-lg outline-none"
-                    />
-                  </div>
-                  <div className="bg-[#0F1A13] p-4 rounded-2xl border border-[#243B2D]">
-                    <span className="text-xs font-bold text-emerald-200 uppercase">Kitchen PIN</span>
-                    <input
-                      type={showPins ? 'text' : 'password'}
-                      value={config.kitchenPin}
-                      onChange={(e) => setConfig({ ...config, kitchenPin: e.target.value })}
-                      className="mt-2 w-full bg-[#18271E] border border-[#243B2D] rounded-xl px-3 py-2 text-center text-white font-mono font-bold text-lg outline-none"
-                    />
-                  </div>
                 </div>
               </div>
             )}
 
-            {/* Sticky Save Bar */}
-            <div className="sticky bottom-6 bg-[#15231B]/95 backdrop-blur-md border border-[#2B4534] p-4 rounded-3xl shadow-2xl flex items-center justify-between">
-              <div className="hidden sm:flex items-center gap-2 text-xs text-emerald-300/70">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span>All changes update immediately across the live portal</span>
-              </div>
-
+            <div className="sticky bottom-6 bg-[#15231B]/95 backdrop-blur-md border border-[#2B4534] p-4 rounded-3xl shadow-2xl flex items-center justify-end">
               <button
                 type="submit"
-                className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-[#D97706] to-[#F59E0B] text-[#111A14] font-black rounded-2xl shadow-xl hover:brightness-110 transition flex items-center justify-center gap-2 text-sm cursor-pointer"
+                className="px-8 py-3.5 bg-gradient-to-r from-[#D97706] to-[#F59E0B] text-[#111A14] font-black rounded-2xl shadow-xl hover:brightness-110 transition flex items-center gap-2 text-sm cursor-pointer"
               >
                 <span>💾</span>
-                <span>Save Live Configurations</span>
+                <span>Save Live Changes</span>
               </button>
             </div>
           </form>
