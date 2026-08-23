@@ -1,14 +1,20 @@
-export type OrderStatus = "pending" | "approved" | "rejected";
+export type OrderStatus = "pending" | "approved" | "out_for_delivery" | "delivered" | "rejected";
+
+export type CityLocation = "Greater Noida" | "Noida";
 
 export interface OrderItem {
   id: string;
   customerName: string;
   phone: string;
+  city: CityLocation;
   address: string;
   mealPlan: string;
   planType: "Daily" | "Monthly" | "Trial";
   slot: "Lunch" | "Dinner" | "Both (Lunch & Dinner)";
+  mealAmount: number;
+  deliveryCharge: number;
   amount: number;
+  estimatedTime: string;
   utrNumber: string;
   paymentSlip: string;
   status: OrderStatus;
@@ -16,7 +22,7 @@ export interface OrderItem {
   createdAt: string;
 }
 
-const ORDER_STORAGE_KEY = "bmb_cloud_orders_database_v2";
+const ORDER_STORAGE_KEY = "bmb_cloud_orders_database_v3";
 
 export const getStoredOrders = (): OrderItem[] => {
   try {
