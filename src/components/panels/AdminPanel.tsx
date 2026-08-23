@@ -8,13 +8,11 @@ export const AdminPanel: React.FC = () => {
   const [pinInput, setPinInput] = useState<string>('');
   const [pinError, setPinError] = useState<string>('');
   
-  // Orders & Filter State
   const [orders, setOrders] = useState<OrderItem[]>(getStoredOrders());
-  const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'approved' | 'out_for_delivery' | 'rejected'>('all');
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string>('');
 
-  // Sync Orders in Realtime
   const refreshOrders = () => {
     setOrders(getStoredOrders());
   };
@@ -31,22 +29,20 @@ export const AdminPanel: React.FC = () => {
       setIsAuthenticated(true);
       setPinError('');
     } else {
-      setPinError('गलत Admin PIN! 6655 दर्ज करें।');
+      setPinError('Invalid Admin PIN! Enter 6655.');
     }
   };
 
-  const handleApprove = (orderId: string, customerPhone: string) => {
-    updateOrderStatus(orderId, 'approved');
-    setActionMessage(`Order ${orderId} स्वीकृत (Approved) हो गया है!`);
+  const handleStatusChange = (orderId: string, status: OrderStatus, reason?: string) => {
+    updateOrderStatus(orderId, status, reason);
+    setActionMessage(`Order ${orderId} marked as ${status.toUpperCase()}!`);
     setTimeout(() => setActionMessage(''), 3500);
   };
 
   const handleReject = (orderId: string) => {
-    const reason = window.prompt('अस्वीकार (Reject) करने का कारण दर्ज करें:', 'Payment not verified / Invalid UTR');
+    const reason = window.prompt('Enter reason for declining order:', 'Payment UTR verification failed');
     if (reason !== null) {
-      updateOrderStatus(orderId, 'rejected', reason || 'Payment unverified');
-      setActionMessage(`Order ${orderId} को Declined मार्क कर दिया गया है।`);
-      setTimeout(() => setActionMessage(''), 3500);
+      handleStatusChange(orderId, 'rejected', reason || 'Payment unverified');
     }
   };
 
@@ -61,7 +57,7 @@ export const AdminPanel: React.FC = () => {
             💼
           </div>
           <h2 className="text-2xl font-black text-white">Staff & Admin Login</h2>
-          <p className="text-emerald-300/60 text-xs mt-1">ऑर्डर अप्रूवल पोर्टल एक्सेस करने के लिए PIN डालें</p>
+          <p className="text-emerald-300/60 text-xs mt-1">Enter Master PIN to access Orders Desk</p>
 
           <form onSubmit={handleLogin} className="mt-6 space-y-4">
             <input
@@ -88,30 +84,32 @@ export const AdminPanel: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-      {/* Header Bar */}
+      {/* Top Header */}
       <div className="bg-[#15231B] border border-[#243B2D] rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-black text-white">📦 Orders Received & Approval Desk</h1>
             {pendingCount > 0 && (
               <span className="px-3 py-1 bg-rose-500 text-white font-black text-xs rounded-full animate-pulse shadow-lg">
-                🔴 {pendingCount} New Pending
+                🔴 {pendingCount} Pending Verification
               </span>
             )}
           </div>
           <p className="text-emerald-300/60 text-xs mt-1">
-            कस्टमर्स के यूटीआर नंबर व स्क्रीनशॉट वेरीफाई करें और ऑर्डर अप्रूव/रिजेक्ट करें
+            Verify customer UTR & payment slips, approve orders, and send 1-click WhatsApp bills
           </p>
         </div>
 
         <div className="flex items-center gap-2.5">
           <button
+            type="button"
             onClick={refreshOrders}
             className="px-4 py-2.5 bg-[#0F1A13] hover:bg-[#203326] text-emerald-200 text-xs font-bold rounded-xl border border-[#243B2D] transition"
           >
-            🔄 Refresh Orders
+            🔄 Refresh
           </button>
           <button
+            type="button"
             onClick={() => setIsAuthenticated(false)}
             className="px-4 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 text-xs font-bold rounded-xl border border-rose-500/30 transition"
           >
@@ -128,60 +126,45 @@ export const AdminPanel: React.FC = () => {
       )}
 
       {/* Filter Tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-4 mb-2">
-        <button
-          onClick={() => setFilterStatus('all')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
-            filterStatus === 'all'
-              ? 'bg-amber-500 text-slate-950 font-black'
-              : 'bg-[#15231B] text-slate-300 border border-[#243B2D]'
-          }`}
-        >
-          All Orders ({orders.length})
-        </button>
-        <button
-          onClick={() => setFilterStatus('pending')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
-            filterStatus === 'pending'
-              ? 'bg-amber-500 text-slate-950 font-black'
-              : 'bg-[#15231B] text-slate-300 border border-[#243B2D]'
-          }`}
-        >
-          🟡 Pending Approval ({pendingCount})
-        </button>
-        <button
-          onClick={() => setFilterStatus('approved')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
-            filterStatus === 'approved'
-              ? 'bg-amber-500 text-slate-950 font-black'
-              : 'bg-[#15231B] text-slate-300 border border-[#243B2D]'
-          }`}
-        >
-          🟢 Approved ({orders.filter((o) => o.status === 'approved').length})
-        </button>
-        <button
-          onClick={() => setFilterStatus('rejected')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
-            filterStatus === 'rejected'
-              ? 'bg-amber-500 text-slate-950 font-black'
-              : 'bg-[#15231B] text-slate-300 border border-[#243B2D]'
-          }`}
-        >
-          🔴 Declined ({orders.filter((o) => o.status === 'rejected').length})
-        </button>
+      <div className="flex gap-2 overflow-x-auto pb-4 mb-2 scrollbar-none">
+        {[
+          { id: 'all', label: `All Orders (${orders.length})` },
+          { id: 'pending', label: `🟡 Pending (${pendingCount})` },
+          { id: 'approved', label: `🟢 Approved (${orders.filter((o) => o.status === 'approved').length})` },
+          { id: 'out_for_delivery', label: `🚚 Out for Delivery (${orders.filter((o) => o.status === 'out_for_delivery').length})` },
+          { id: 'rejected', label: `🔴 Declined (${orders.filter((o) => o.status === 'rejected').length})` },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setFilterStatus(tab.id as any)}
+            className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition ${
+              filterStatus === tab.id
+                ? 'bg-amber-500 text-slate-950 font-black shadow-md'
+                : 'bg-[#15231B] text-slate-300 border border-[#243B2D]'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
-      {/* Orders List / Table */}
+      {/* Orders List */}
       {filteredOrders.length === 0 ? (
         <div className="bg-[#15231B] border border-[#243B2D] rounded-3xl p-12 text-center text-slate-400">
           <p className="text-3xl mb-2">📭</p>
-          <p className="text-sm font-bold text-white">कोई ऑर्डर नहीं मिला</p>
-          <p className="text-xs text-emerald-300/50 mt-1">जब कस्टमर नया ऑर्डर डालेगा, वह यहाँ तुरंत दिखाई देगा।</p>
+          <p className="text-sm font-bold text-white">No Orders Found</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4">
           {filteredOrders.map((order) => {
             const cleanPhone = order.phone.replace(/[^0-9]/g, '');
+
+            // 1-Click WhatsApp Messages
+            const approveWaMsg = `🎉 *Bring My Bite - Order Confirmed!* %0A%0A*Order ID:* ${order.id}%0A*Customer:* ${order.customerName}%0A*Meal:* ${order.mealPlan}%0A*Area:* ${order.city || 'Greater Noida'} (${order.estimatedTime || '30 Mins'})%0A*Address:* ${order.address}%0A*Total Bill:* ₹${order.amount} (UTR Verified ✅)%0A%0A🍱 *Your meal is being prepared fresh and will be delivered to your gate shortly!*`;
+
+            const rejectWaMsg = `⚠️ *Bring My Bite - Order Alert* %0A%0A*Order ID:* ${order.id}%0A*Status:* Payment Unverified / Declined%0A*Reason:* ${order.rejectionReason || 'UTR number could not be verified'}%0A%0APlease reply to this WhatsApp message with your payment screenshot.`;
+
             return (
               <div
                 key={order.id}
@@ -190,28 +173,37 @@ export const AdminPanel: React.FC = () => {
                     ? 'border-amber-500/50 bg-[#18291f]'
                     : order.status === 'approved'
                     ? 'border-emerald-500/30'
-                    : 'border-rose-500/30 opacity-75'
+                    : order.status === 'out_for_delivery'
+                    ? 'border-sky-500/30'
+                    : 'border-rose-500/30 opacity-80'
                 }`}
               >
                 <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-                  {/* Customer & Order Summary */}
+                  {/* Order Details */}
                   <div className="space-y-1.5 flex-1">
-                    <div className="flex flex-wrap items-center gap-2.5">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="font-mono font-black text-amber-400 text-sm">{order.id}</span>
+                      <span className="px-2 py-0.5 bg-[#0F1A13] border border-amber-500/30 text-amber-300 rounded-full text-[10px] font-bold">
+                        📍 {order.city || 'Greater Noida'} • ⚡ {order.estimatedTime || '30 Mins'}
+                      </span>
                       <span
                         className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
                           order.status === 'pending'
                             ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/40'
                             : order.status === 'approved'
                             ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                            : order.status === 'out_for_delivery'
+                            ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40'
                             : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
                         }`}
                       >
-                        {order.status === 'pending' ? '🟡 Pending Approval' : order.status === 'approved' ? '🟢 Approved' : '🔴 Declined'}
+                        {order.status === 'pending' && '🟡 Pending'}
+                        {order.status === 'approved' && '🟢 Approved'}
+                        {order.status === 'out_for_delivery' && '🚚 Out for Delivery'}
+                        {order.status === 'rejected' && '🔴 Declined'}
                       </span>
                       <span className="text-[11px] text-slate-400">
-                        {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} •{' '}
-                        {new Date(order.createdAt).toLocaleDateString()}
+                        {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
 
@@ -222,23 +214,27 @@ export const AdminPanel: React.FC = () => {
 
                     <div className="text-xs text-slate-300">
                       📍 <span className="text-white font-medium">{order.address}</span> • 🍱{' '}
-                      <span className="text-amber-300 font-bold">{order.mealPlan}</span> • स्लॉट:{' '}
-                      <span className="text-white font-bold">{order.slot}</span>
+                      <span className="text-amber-300 font-bold">{order.mealPlan}</span>
                     </div>
 
                     {order.rejectionReason && (
                       <div className="text-xs text-rose-300 font-bold pt-1">
-                        कारण: {order.rejectionReason}
+                        Decline Reason: {order.rejectionReason}
                       </div>
                     )}
                   </div>
 
-                  {/* Payment Verification Block */}
+                  {/* Payment Verification Box */}
                   <div className="bg-[#0F1A13] border border-[#243B2D] p-3.5 rounded-2xl flex items-center gap-4 min-w-[280px]">
                     <div className="space-y-0.5 flex-1">
-                      <div className="text-[10px] text-slate-400 uppercase font-bold">UTR / Ref Number</div>
+                      <div className="text-[10px] text-slate-400 uppercase font-bold">UTR / UPI Ref</div>
                       <div className="text-xs font-mono font-bold text-amber-300 select-all">{order.utrNumber}</div>
-                      <div className="text-sm font-black text-white pt-1">₹{order.amount}</div>
+                      <div className="text-sm font-black text-white pt-1">
+                        ₹{order.amount}{' '}
+                        {order.deliveryCharge > 0 && (
+                          <span className="text-[10px] text-amber-300 font-normal">(Incl. ₹{order.deliveryCharge} Noida)</span>
+                        )}
+                      </div>
                     </div>
 
                     {order.paymentSlip ? (
@@ -246,7 +242,7 @@ export const AdminPanel: React.FC = () => {
                         type="button"
                         onClick={() => setPreviewImage(order.paymentSlip)}
                         className="group relative w-14 h-14 rounded-xl overflow-hidden border border-emerald-500/40 hover:scale-105 transition"
-                        title="Click to Zoom Screenshot"
+                        title="Zoom Screenshot"
                       >
                         <img src={order.paymentSlip} alt="Slip" className="w-full h-full object-cover" />
                         <span className="absolute inset-0 bg-black/40 flex items-center justify-center text-[10px] text-white font-bold opacity-0 group-hover:opacity-100 transition">
@@ -258,38 +254,48 @@ export const AdminPanel: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Action Buttons */}
+                  {/* Actions & WhatsApp 1-Click Notifications */}
                   <div className="flex flex-wrap items-center gap-2">
                     {order.status === 'pending' && (
                       <>
                         <button
-                          onClick={() => handleApprove(order.id, order.phone)}
-                          className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl shadow-lg shadow-emerald-900/30 transition flex items-center gap-1.5"
+                          type="button"
+                          onClick={() => handleStatusChange(order.id, 'approved')}
+                          className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl shadow-lg transition"
                         >
-                          <span>✅</span> Approve
+                          ✅ Approve
                         </button>
-
                         <button
+                          type="button"
                           onClick={() => handleReject(order.id)}
-                          className="px-3.5 py-2.5 bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 font-bold text-xs rounded-xl border border-rose-500/40 transition"
+                          className="px-3 py-2 bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 font-bold text-xs rounded-xl border border-rose-500/40 transition"
                         >
                           ❌ Reject
                         </button>
                       </>
                     )}
 
+                    {order.status === 'approved' && (
+                      <button
+                        type="button"
+                        onClick={() => handleStatusChange(order.id, 'out_for_delivery')}
+                        className="px-3 py-2 bg-sky-600 hover:bg-sky-500 text-white font-black text-xs rounded-xl transition"
+                      >
+                        🚚 Dispatch / Out
+                      </button>
+                    )}
+
+                    {/* WhatsApp 1-Click Bill/Notice Link */}
                     <a
-                      href={`https://wa.me/${cleanPhone}?text=Hello%20${encodeURIComponent(
-                        order.customerName
-                      )},%20Aapka%20Bring%20My%20Bite%20order%20(${order.id})%20${
-                        order.status === 'approved' ? 'ACCEPT' : 'UPDATE'
-                      }%20ho%20gaya%20hai.`}
+                      href={`https://wa.me/${cleanPhone}?text=${
+                        order.status === 'rejected' ? rejectWaMsg : approveWaMsg
+                      }`}
                       target="_blank"
                       rel="noreferrer"
-                      className="px-3 py-2.5 bg-[#203326] hover:bg-[#2c4734] text-emerald-200 text-xs font-bold rounded-xl border border-emerald-500/30 transition flex items-center gap-1"
-                      title="Customer ko WhatsApp message bhejein"
+                      className="px-3 py-2 bg-[#203326] hover:bg-[#2c4734] text-emerald-200 text-xs font-bold rounded-xl border border-emerald-500/30 transition flex items-center gap-1.5"
                     >
-                      <span>💬</span> WhatsApp
+                      <span>💬</span>
+                      <span>{order.status === 'rejected' ? 'Send Decline Alert' : 'Send WhatsApp Bill'}</span>
                     </a>
                   </div>
                 </div>
@@ -299,19 +305,20 @@ export const AdminPanel: React.FC = () => {
         </div>
       )}
 
-      {/* Screenshot Full Modal Preview */}
+      {/* Image Preview Modal */}
       {previewImage && (
         <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
           <div className="relative max-w-2xl w-full bg-[#15231B] border border-[#243B2D] rounded-3xl p-4 text-center">
             <button
+              type="button"
               onClick={() => setPreviewImage(null)}
               className="absolute top-4 right-4 w-9 h-9 rounded-full bg-rose-600 text-white font-bold"
             >
               ✕
             </button>
-            <h3 className="text-sm font-bold text-white mb-3">📸 Payment Screenshot Preview</h3>
+            <h3 className="text-sm font-bold text-white mb-3">📸 Payment Screenshot</h3>
             <div className="max-h-[75vh] overflow-auto rounded-xl border border-[#243B2D]">
-              <img src={previewImage} alt="Payment Full Slip" className="w-full object-contain mx-auto" />
+              <img src={previewImage} alt="Full Slip" className="w-full object-contain mx-auto" />
             </div>
           </div>
         </div>
