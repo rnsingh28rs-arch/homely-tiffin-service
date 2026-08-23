@@ -19,7 +19,7 @@ export interface SiteConfig {
   email: string;
   kitchenAddress: string;
 
-  // Banking
+  // Banking Suite
   bankAccountName: string;
   bankAccountNumber: string;
   bankIfscCode: string;
@@ -35,14 +35,14 @@ export interface SiteConfig {
   heroBannerImage: string;
   thaliImage: string;
 
-  // 3 Core Dishes with Default Rates ₹80, ₹100, ₹120
+  // STRICTLY 3 DISHES ONLY (SAME PHOTOS AS HOMEPAGE)
   dishes: DynamicDish[];
 
-  // Monthly Subscriptions
+  // STRICTLY 3 MONTHLY SUBSCRIPTIONS
   packages: {
-    veg: { dailyPrice: number; monthlyPrice: number; description: string; itemsIncluded: string };
-    egg: { dailyPrice: number; monthlyPrice: number; description: string; itemsIncluded: string };
-    nonVeg: { dailyPrice: number; monthlyPrice: number; description: string; itemsIncluded: string };
+    veg: { dailyPrice: number; monthlyPrice: number; description: string; itemsIncluded: string; imageUrl: string };
+    egg: { dailyPrice: number; monthlyPrice: number; description: string; itemsIncluded: string; imageUrl: string };
+    nonVeg: { dailyPrice: number; monthlyPrice: number; description: string; itemsIncluded: string; imageUrl: string };
   };
 
   deliverySlots: {
@@ -56,6 +56,11 @@ export interface SiteConfig {
   managerPin: string;
   kitchenPin: string;
 }
+
+// EXACT 3 HOMEPAGE PHOTOS (LOCKED ACROSS ENTIRE PLATFORM)
+export const VEG_THALI_IMG = "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=800&auto=format&fit=crop&q=80";
+export const EGG_THALI_IMG = "https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?w=800&auto=format&fit=crop&q=80";
+export const CHICKEN_THALI_IMG = "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=800&auto=format&fit=crop&q=80";
 
 export const DEFAULT_CONFIG: SiteConfig = {
   brandName: "Bring My Bite",
@@ -79,9 +84,9 @@ export const DEFAULT_CONFIG: SiteConfig = {
   heroHeadline: "Homely Food. Delivered with Care.",
   heroTagline: "Premium hygienic tiffin service for Students & Working Professionals.",
   heroBannerImage: "https://images.unsplash.com/photo-1613292443284-8d10ef9383fe?w=1920&auto=format&fit=crop&q=80",
-  thaliImage: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=600&auto=format&fit=crop&q=80",
+  thaliImage: VEG_THALI_IMG,
 
-  // 3 CORE DISHES LOCKED WITH YOUR EXACT RATES & SAFE HD PHOTOS
+  // STRICT 3 DISHES (₹80, ₹100, ₹120) WITH IDENTICAL PHOTOS
   dishes: [
     {
       id: "dish-veg",
@@ -89,7 +94,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
       category: "Veg",
       price: 80,
       items: "4 Soft Tawa Rotis + Seasonal Dal + Green Sabzi + Steamed Rice + Salad & Pickle",
-      imageUrl: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=600&auto=format&fit=crop&q=80",
+      imageUrl: VEG_THALI_IMG,
       badge: "Best Seller ⭐",
       isAvailable: true,
     },
@@ -99,7 +104,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
       category: "Egg",
       price: 100,
       items: "2-Egg Rich Homestyle Curry + 4 Rotis + Steamed Rice + Yellow Dal + Fresh Salad",
-      imageUrl: "https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?w=600&auto=format&fit=crop&q=80",
+      imageUrl: EGG_THALI_IMG,
       badge: "High Protein 💪",
       isAvailable: true,
     },
@@ -109,30 +114,34 @@ export const DEFAULT_CONFIG: SiteConfig = {
       category: "Non-Veg",
       price: 120,
       items: "Desi Chicken Curry (3 Pcs) + 4 Rotis + Steamed Rice + Salad & Raita",
-      imageUrl: "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=600&auto=format&fit=crop&q=80",
+      imageUrl: CHICKEN_THALI_IMG,
       badge: "Chef Special 🍗",
       isAvailable: true,
     },
   ],
 
+  // STRICT 3 PACKAGES WITH IDENTICAL PHOTOS
   packages: {
     veg: {
       dailyPrice: 80,
       monthlyPrice: 2400,
       description: "Shuddh Shakahari Ghar Ka Khana",
       itemsIncluded: "4 Butter Tawa Rotis + Dal Tadka + Seasonal Sabzi + Jeera Rice + Salad & Pickle",
+      imageUrl: VEG_THALI_IMG,
     },
     egg: {
       dailyPrice: 100,
       monthlyPrice: 2999,
       description: "High-Protein Double Egg Curry Combo",
       itemsIncluded: "2-Egg Rich Curry + 4 Soft Rotis + Steamed Rice + Dal + Fresh Salad",
+      imageUrl: EGG_THALI_IMG,
     },
     nonVeg: {
       dailyPrice: 120,
       monthlyPrice: 3599,
       description: "Desi Style Special Chicken Thali",
       itemsIncluded: "Homestyle Chicken Curry (3 Pcs) + 4 Rotis + Rice + Salad & Raita",
+      imageUrl: CHICKEN_THALI_IMG,
     },
   },
 
@@ -148,18 +157,32 @@ export const DEFAULT_CONFIG: SiteConfig = {
   kitchenPin: "1234",
 };
 
-// PERMANENT STORAGE KEY (NEVER OVERWRITES USER EDITS ON REFRESH)
-const PERMANENT_STORAGE_KEY = "bmb_master_store_permanent_v100";
+// Permanent Storage Key
+const MASTER_CONFIG_KEY = "bmb_locked_master_config_v200";
+
+// Helper: Ensure 100% Accurate Indian WhatsApp Format (+91)
+export const formatIndianWhatsAppNumber = (rawPhone: string): string => {
+  const digits = rawPhone.replace(/[^0-9]/g, '');
+  if (digits.length === 10) {
+    return '91' + digits; // 9004848984 -> 919004848984
+  }
+  if (digits.length === 11 && digits.startsWith('0')) {
+    return '91' + digits.substring(1);
+  }
+  if (digits.length === 12 && digits.startsWith('91')) {
+    return digits;
+  }
+  return digits.length > 0 ? digits : '919004848984';
+};
 
 export const getSiteConfig = (): SiteConfig => {
   try {
-    const saved = localStorage.getItem(PERMANENT_STORAGE_KEY);
+    const saved = localStorage.getItem(MASTER_CONFIG_KEY);
     if (!saved) {
-      localStorage.setItem(PERMANENT_STORAGE_KEY, JSON.stringify(DEFAULT_CONFIG));
+      localStorage.setItem(MASTER_CONFIG_KEY, JSON.stringify(DEFAULT_CONFIG));
       return DEFAULT_CONFIG;
     }
     const parsed = JSON.parse(saved);
-    // Ensure dishes array exists and fallback smoothly
     if (!parsed.dishes || parsed.dishes.length === 0) {
       parsed.dishes = DEFAULT_CONFIG.dishes;
     }
@@ -170,6 +193,6 @@ export const getSiteConfig = (): SiteConfig => {
 };
 
 export const saveSiteConfig = (newConfig: SiteConfig): void => {
-  localStorage.setItem(PERMANENT_STORAGE_KEY, JSON.stringify(newConfig));
+  localStorage.setItem(MASTER_CONFIG_KEY, JSON.stringify(newConfig));
   window.dispatchEvent(new Event("bmb_config_updated"));
 };
