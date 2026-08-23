@@ -1,6 +1,7 @@
 export interface SiteConfig {
   superAdminPin: string;
   adminPin: string;
+  managerPin: string;
   kitchenPin: string;
   upiId: string;
   upiQrImage: string;
@@ -8,35 +9,56 @@ export interface SiteConfig {
   phone: string;
   email: string;
   heroTagline: string;
+  heroBannerImage: string;
+  thaliImage: string;
+  deliverySlots: {
+    lunchTime: string;
+    dinnerTime: string;
+  };
+  deliveryLocations: string;
   prices: {
-    dailyStandard: number;
-    dailyMini: number;
-    monthlyStandard: number;
-    monthlyMini: number;
+    vegDaily: number;
+    vegMonthly: number;
+    eggDaily: number;
+    eggMonthly: number;
+    nonVegDaily: number;
+    nonVegMonthly: number;
     trialMeal: number;
+    deliveryCharge: number;
   };
 }
 
 export const DEFAULT_CONFIG: SiteConfig = {
   superAdminPin: "6655",
   adminPin: "6655",
+  managerPin: "4433",
   kitchenPin: "1234",
-  upiId: "bringmybite@upi",
+  upiId: "9004848984@axisbank",
   upiQrImage: "https://images.unsplash.com/photo-1556742049-0a67e5572263?w=500&auto=format&fit=crop&q=60",
-  whatsappNumber: "919999999999",
-  phone: "+91 99999 99999",
+  whatsappNumber: "919004848984",
+  phone: "+91 9004848984",
   email: "support@bringmybite.com",
-  heroTagline: "Ghar Jaisa Swad, Roz Aapke Ghar Tak",
+  heroTagline: "Ghar Jaisa Swad, Roz Aapke College & Office Gate Tak",
+  heroBannerImage: "https://images.unsplash.com/photo-1613292443284-8d10ef9383fe?w=1200&auto=format&fit=crop&q=80",
+  thaliImage: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=800&auto=format&fit=crop&q=80",
+  deliverySlots: {
+    lunchTime: "12:30 PM - 02:00 PM",
+    dinnerTime: "07:30 PM - 09:30 PM",
+  },
+  deliveryLocations: "Galgotias University (Gate 1 & 2), Sharda University, Bennett University, Knowledge Park Hostels",
   prices: {
-    dailyStandard: 120,
-    dailyMini: 90,
-    monthlyStandard: 3200,
-    monthlyMini: 2500,
+    vegDaily: 110,
+    vegMonthly: 2999,
+    eggDaily: 130,
+    eggMonthly: 3499,
+    nonVegDaily: 160,
+    nonVegMonthly: 4199,
     trialMeal: 99,
+    deliveryCharge: 0,
   },
 };
 
-const CONFIG_KEY = "bmb_live_site_config_v2";
+const CONFIG_KEY = "bmb_live_site_config_v3";
 
 export const getSiteConfig = (): SiteConfig => {
   try {
