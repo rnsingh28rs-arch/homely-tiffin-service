@@ -1,753 +1,471 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
-import {
-  PackageType,
-  CustomerCategory,
-  MealPreference,
-  SubscriptionDuration,
-  PaymentMethod
-} from '../../types';
-import { PaymentDetailsCard } from '../common/PaymentDetailsCard';
-import { OFFICIAL_BANK_DETAILS } from '../../data/paymentConfig';
-import {
-  X,
-  CheckCircle,
-  GraduationCap,
-  Briefcase,
-  User,
-  ShieldCheck,
-  QrCode,
-  Sparkles,
-  MapPin,
-  Locate,
-  Gift,
-  Printer,
-  Calendar,
-  Phone,
-  Check,
-  PartyPopper,
-  CreditCard,
-  Building2,
-  Lock
-} from 'lucide-react';
-import confetti from 'canvas-confetti';
+import { getSiteConfig, SiteConfig } from '../../utils/siteConfigStore';
+import { createOrder, OrderItem } from '../../utils/orderStore';
 
 export const RegistrationModal: React.FC = () => {
-  const {
-    isRegistrationOpen,
-    setIsRegistrationOpen,
-    selectedPackageForRegistration,
-    setSelectedPackageForRegistration,
-    pricing,
-    addSubscription,
-    referrals
-  } = useApp();
+  const { isRegistrationOpen, closeRegistration } = useApp();
+  const [config, setConfig] = useState<SiteConfig>(getSiteConfig());
 
-  // Form State - Essential Information
-  const [fullName, setFullName] = useState('');
-  const [mobileNumber, setMobileNumber] = useState('');
-  const [whatsappNumber, setWhatsappNumber] = useState('');
-  const [category, setCategory] = useState<CustomerCategory>('College Student');
-
-  // Delivery Destinations
-  const [collegeName, setCollegeName] = useState('');
-  const [studentDeliveryPoint] = useState<'College Gate'>('College Gate');
-
-  const [companyName, setCompanyName] = useState('');
-  const [proDeliveryPoint, setProDeliveryPoint] = useState<'Office Gate' | 'Office Reception'>('Office Gate');
-
-  // Dinner & Home Address
-  const [homeAddress, setHomeAddress] = useState('');
-  const [pinCode, setPinCode] = useState('');
-
-  // Map Link & GPS Location
-  const [mapLocationUrl, setMapLocationUrl] = useState('');
-  const [isLocating, setIsLocating] = useState(false);
-  const [locationSuccess, setLocationSuccess] = useState(false);
-
-  // Referral System
-  const [referralCodeInput, setReferralCodeInput] = useState('');
-  const [referralCodeValid, setReferralCodeValid] = useState(false);
-
-  // Plan Selection
-  const [packageType, setPackageType] = useState<PackageType>(selectedPackageForRegistration);
-  const [mealPreference, setMealPreference] = useState<MealPreference>('Lunch + Dinner');
+  // Form Fields
+  const [customerName, setCustomerName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+  const [planType, setPlanType] = useState<'veg' | 'egg' | 'nonVeg'>('veg');
+  const [mealSlot, setMealSlot] = useState<'Lunch' | 'Dinner' | 'Both (Lunch & Dinner)'>('Both (Lunch & Dinner)');
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
-  const [duration, setDuration] = useState<SubscriptionDuration>('1 Month');
+  const [utrNumber, setUtrNumber] = useState('');
+  const [paymentSlip, setPaymentSlip] = useState<string>('');
+  const [slipFileName, setSlipFileName] = useState<string>('');
 
-  // Payment
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('UPI');
-  const [transactionId, setTransactionId] = useState('');
-  const [showQrCode, setShowQrCode] = useState(false);
-
-  // Success State
-  const [registeredSub, setRegisteredSub] = useState<any | null>(null);
-
-  useEffect(() => {
-    setPackageType(selectedPackageForRegistration);
-  }, [selectedPackageForRegistration]);
+  // Flow State
+  const [step, setStep] = useState<'details' | 'payment' | 'success'>('details');
+  const [submittedOrder, setSubmittedOrder] = useState<OrderItem | null>(null);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
-    if (referralCodeInput.trim().length >= 4) {
-      setReferralCodeValid(true);
-    } else {
-      setReferralCodeValid(false);
-    }
-  }, [referralCodeInput]);
+    const handleUpdate = () => setConfig(getSiteConfig());
+    window.addEventListener('bmb_config_updated', handleUpdate);
+    return () => window.removeEventListener('bmb_config_updated', handleUpdate);
+  }, []);
 
   if (!isRegistrationOpen) return null;
 
-  // Calculate monthly & total price
-  const baseMonthlyPrice =
-    packageType === 'VEG CLASSIC'
-      ? pricing.vegMonthly
-      : packageType === 'EGG DELIGHT'
-      ? pricing.eggMonthly
-      : pricing.nonVegMonthly;
-
-  const multiplier = duration === '1 Month' ? 1 : duration === '3 Months' ? 3 : 6;
-  const discountFactor = duration === '3 Months' ? 0.95 : duration === '6 Months' ? 0.90 : 1.0;
-  const calculatedTotal = Math.round(baseMonthlyPrice * multiplier * discountFactor);
-
-  const getPackageCode = (pkg: PackageType): 'VC' | 'ED' | 'NVC' => {
-    if (pkg === 'VEG CLASSIC') return 'VC';
-    if (pkg === 'EGG DELIGHT') return 'ED';
-    return 'NVC';
-  };
-
-  // GPS Auto-detect handler
-  const handleDetectGPS = () => {
-    if (!navigator.geolocation) {
-      alert('Geolocation is not supported by your browser. Please paste your Google Maps link directly.');
-      return;
+  // Pricing calculation
+  const getSelectedPlan = () => {
+    switch (planType) {
+      case 'veg':
+        return {
+          title: 'Pure Veg Monthly Plan',
+          price: config.packages.veg.monthlyPrice,
+          items: config.packages.veg.itemsIncluded,
+        };
+      case 'egg':
+        return {
+          title: 'Egg Special Monthly Plan',
+          price: config.packages.egg.monthlyPrice,
+          items: config.packages.egg.itemsIncluded,
+        };
+      case 'nonVeg':
+        return {
+          title: 'Non-Veg Special Monthly Plan',
+          price: config.packages.nonVeg.monthlyPrice,
+          items: config.packages.nonVeg.itemsIncluded,
+        };
     }
-    setIsLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const lat = position.coords.latitude.toFixed(6);
-        const lng = position.coords.longitude.toFixed(6);
-        const mapsLink = `https://www.google.com/maps?q=${lat},${lng}`;
-        setMapLocationUrl(mapsLink);
-        setIsLocating(false);
-        setLocationSuccess(true);
-        setTimeout(() => setLocationSuccess(false), 3000);
-      },
-      (error) => {
-        setIsLocating(false);
-        alert('Could not retrieve current location. Please paste your Google Maps link manually.');
-      },
-      { timeout: 10000, enableHighAccuracy: true }
-    );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const currentPlan = getSelectedPlan();
+  const totalAmount = currentPlan.price;
+
+  // Handle Slip Upload
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        setErrorMessage('फाइल का साइज़ 5MB से कम होना चाहिए!');
+        return;
+      }
+      setSlipFileName(file.name);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPaymentSlip(reader.result as string);
+        setErrorMessage('');
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Submit Subscription Order
+  const handleFinalSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!fullName.trim() || !mobileNumber.trim()) {
-      alert('Please enter your Full Name and Mobile Number.');
+    if (!utrNumber.trim() || utrNumber.trim().length < 6) {
+      setErrorMessage('कृपया सही 12-अंकों का UPI UTR / Transaction ID दर्ज करें!');
       return;
     }
 
-    if (category === 'College Student' && !collegeName.trim()) {
-      alert('Please enter your College Name for gate delivery.');
-      return;
-    }
-
-    if (category === 'Working Professional' && !companyName.trim()) {
-      alert('Please enter your Company / Office Name for gate delivery.');
-      return;
-    }
-
-    const sub = addSubscription({
-      customerName: fullName,
-      mobileNumber,
-      whatsappNumber: whatsappNumber || mobileNumber,
-      category,
-      collegeName: category === 'College Student' ? collegeName : undefined,
-      lunchDeliveryPoint:
-        category === 'College Student' ? studentDeliveryPoint : proDeliveryPoint,
-      companyName: category === 'Working Professional' ? companyName : undefined,
-      streetArea: homeAddress || (category === 'College Student' ? `${collegeName} Gate Area` : `${companyName} Vicinity`),
-      pinCode: pinCode || '700091',
-      mapLocationUrl: mapLocationUrl.trim() || undefined,
-      referralCodeUsed: referralCodeInput.trim() || undefined,
-      packageType,
-      packageCode: getPackageCode(packageType),
-      monthlyPrice: baseMonthlyPrice,
-      mealPreference,
-      startDate,
-      duration,
-      paymentMethod,
-      transactionId: transactionId || `TXN-${Math.floor(100000 + Math.random() * 900000)}`,
-      amountPaid: calculatedTotal,
-      paymentDate: new Date().toISOString().split('T')[0]
+    const order = createOrder({
+      customerName,
+      phone,
+      address: `${address} (Start Date: ${startDate})`,
+      mealPlan: `${currentPlan.title}`,
+      planType: 'Monthly',
+      slot: mealSlot,
+      amount: totalAmount,
+      utrNumber: utrNumber.trim(),
+      paymentSlip,
     });
 
-    try {
-      confetti({
-        particleCount: 90,
-        spread: 75,
-        origin: { y: 0.6 }
-      });
-    } catch (err) {}
-
-    setRegisteredSub(sub);
+    setSubmittedOrder(order);
+    setStep('success');
   };
 
-  const handlePrint = () => {
-    window.print();
+  const resetAndClose = () => {
+    setStep('details');
+    setCustomerName('');
+    setPhone('');
+    setAddress('');
+    setUtrNumber('');
+    setPaymentSlip('');
+    setSlipFileName('');
+    setSubmittedOrder(null);
+    setErrorMessage('');
+    closeRegistration();
   };
+
+  const cleanWa = config.whatsappNumber.replace(/[^0-9]/g, '');
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/75 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 animate-in fade-in duration-200">
-      <div className="bg-[#FAF7F2] rounded-2xl w-full max-w-3xl shadow-2xl border-2 border-[#124E33] overflow-hidden flex flex-col max-h-[94vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
+      <div className="relative w-full max-w-2xl bg-[#15231B] border border-[#2B4534] rounded-3xl p-6 sm:p-8 text-[#FAF7F2] shadow-2xl my-8">
         
-        {/* Top Header */}
-        <div className="bg-gradient-to-r from-[#124E33] via-[#1B5E20] to-[#0C3822] text-white p-4 sm:p-5 flex items-center justify-between border-b border-emerald-900 shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#F2C94C] to-[#D99B26] text-black flex items-center justify-center font-black text-lg shadow-md">
-              🍱
+        {/* Close Button */}
+        <button
+          onClick={resetAndClose}
+          className="absolute top-5 right-5 w-9 h-9 rounded-full bg-[#0F1A13] border border-[#243B2D] text-slate-400 hover:text-white flex items-center justify-center transition"
+        >
+          ✕
+        </button>
+
+        {/* STEP 1: SUBSCRIPTION PACKAGE SELECTION & DETAILS */}
+        {step === 'details' && (
+          <div>
+            <div className="text-center mb-6">
+              <span className="px-3 py-1 bg-amber-500/20 border border-amber-500/30 text-amber-300 text-xs font-bold rounded-full uppercase">
+                📅 Monthly Subscription Booking
+              </span>
+              <h2 className="text-2xl font-black text-white mt-2">मंथली टिफिन सर्विस रजिस्टर करें</h2>
+              <p className="text-emerald-300/60 text-xs mt-1">30 दिन की होमस्टाइल डेली मील डिलीवरी</p>
             </div>
-            <div>
-              <h2 className="text-lg sm:text-xl font-bold font-serif-title tracking-wide text-[#FAF7F2]">
-                Monthly Subscription Registration
-              </h2>
-              <p className="text-[11px] sm:text-xs text-emerald-200">
-                Bring My Bite by Shree Foods • Direct College & Office Gate Delivery
-              </p>
-            </div>
-          </div>
 
-          <button
-            onClick={() => {
-              setIsRegistrationOpen(false);
-              setRegisteredSub(null);
-            }}
-            className="p-1.5 rounded-full text-emerald-200 hover:text-white hover:bg-emerald-800 transition-colors"
-          >
-            <X className="w-6 h-6" />
-          </button>
-        </div>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!customerName || !phone || !address) {
+                  setErrorMessage('कृपया नाम, मोबाइल नंबर और पता भरें!');
+                  return;
+                }
+                setErrorMessage('');
+                setStep('payment');
+              }}
+              className="space-y-4"
+            >
+              {/* Plan Choice */}
+              <div>
+                <label className="block text-xs font-bold text-amber-300 uppercase mb-2">1. मंथली पैकेज चुनें</label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setPlanType('veg')}
+                    className={`p-3.5 rounded-2xl border text-left transition ${
+                      planType === 'veg'
+                        ? 'bg-emerald-500/20 border-emerald-400 text-white font-bold'
+                        : 'bg-[#0F1A13] border-[#243B2D] text-slate-300 hover:border-[#375a43]'
+                    }`}
+                  >
+                    <div className="text-xs font-bold text-emerald-300">🌱 Pure Veg</div>
+                    <div className="text-lg font-black text-amber-400 mt-1">₹{config.packages.veg.monthlyPrice}</div>
+                    <div className="text-[10px] text-slate-400 mt-1">30 Din • Roz Lunch/Dinner</div>
+                  </button>
 
-        {/* Modal Body */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#FAF7F2]">
-          
-          {registeredSub ? (
-            /* Success Slip */
-            <div className="bg-white rounded-2xl p-6 sm:p-8 border-2 border-emerald-600 shadow-md space-y-5 text-center">
-              <div className="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto shadow-inner">
-                <CheckCircle className="w-10 h-10" />
+                  <button
+                    type="button"
+                    onClick={() => setPlanType('egg')}
+                    className={`p-3.5 rounded-2xl border text-left transition ${
+                      planType === 'egg'
+                        ? 'bg-amber-500/20 border-amber-400 text-white font-bold'
+                        : 'bg-[#0F1A13] border-[#243B2D] text-slate-300 hover:border-[#375a43]'
+                    }`}
+                  >
+                    <div className="text-xs font-bold text-amber-300">🍳 Egg Special</div>
+                    <div className="text-lg font-black text-amber-400 mt-1">₹{config.packages.egg.monthlyPrice}</div>
+                    <div className="text-[10px] text-slate-400 mt-1">High Protein Combo</div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPlanType('nonVeg')}
+                    className={`p-3.5 rounded-2xl border text-left transition ${
+                      planType === 'nonVeg'
+                        ? 'bg-rose-500/20 border-rose-400 text-white font-bold'
+                        : 'bg-[#0F1A13] border-[#243B2D] text-slate-300 hover:border-[#375a43]'
+                    }`}
+                  >
+                    <div className="text-xs font-bold text-rose-300">🍗 Non-Veg</div>
+                    <div className="text-lg font-black text-amber-400 mt-1">₹{config.packages.nonVeg.monthlyPrice}</div>
+                    <div className="text-[10px] text-slate-400 mt-1">Chicken Special Plan</div>
+                  </button>
+                </div>
+
+                <div className="mt-2.5 p-2.5 bg-[#0F1A13] border border-[#243B2D] rounded-xl text-[11px] text-emerald-200/80">
+                  <span className="font-bold text-white">मेन्यू सामग्री:</span> {currentPlan.items}
+                </div>
               </div>
 
-              <div className="space-y-1">
-                <span className="text-xs font-bold uppercase tracking-widest text-[#D99B26]">
-                  Registration Confirmed
-                </span>
-                <h3 className="text-2xl font-extrabold text-[#124E33] font-serif-title">
-                  Welcome to Bring My Bite!
-                </h3>
-                <p className="text-xs sm:text-sm text-gray-600">
-                  Your monthly plan is active. Onboarding details dispatched to your WhatsApp.
-                </p>
-              </div>
-
-              {/* Summary Details */}
-              <div className="max-w-md mx-auto bg-[#FAF7F2] p-4 rounded-xl border border-[#E8E1D5] text-left text-xs space-y-2">
-                <div className="flex justify-between border-b border-gray-200 pb-1.5">
-                  <span className="text-gray-500 font-medium">Customer / Sub ID:</span>
-                  <span className="font-mono font-bold text-[#124E33] text-sm">{registeredSub.id}</span>
-                </div>
-                <div className="flex justify-between border-b border-gray-200 pb-1.5">
-                  <span className="text-gray-500 font-medium">Selected Package:</span>
-                  <span className="font-bold text-gray-800">{registeredSub.packageType} ({registeredSub.mealPreference})</span>
-                </div>
-                <div className="flex justify-between border-b border-gray-200 pb-1.5">
-                  <span className="text-gray-500 font-medium">Delivery Destination:</span>
-                  <span className="font-bold text-gray-800">{registeredSub.lunchDeliveryPoint} ({registeredSub.collegeName || registeredSub.companyName || 'Registered Location'})</span>
-                </div>
-                <div className="flex justify-between border-b border-gray-200 pb-1.5">
-                  <span className="text-gray-500 font-medium">Start Date:</span>
-                  <span className="font-bold text-gray-800">{registeredSub.startDate}</span>
-                </div>
-                <div className="flex justify-between border-b border-gray-200 pb-1.5">
-                  <span className="text-gray-500 font-medium">Total Paid:</span>
-                  <span className="font-extrabold text-emerald-800 text-sm">₹{registeredSub.amountPaid.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between pt-1">
-                  <span className="text-gray-500 font-medium">Bonus Feasts Included:</span>
-                  <span className="font-bold text-[#D99B26]">2x Monthly (1st & 15th) 🎁</span>
-                </div>
-                {registeredSub.referralCodeUsed && (
-                  <div className="flex justify-between pt-1 border-t border-dashed border-amber-300 text-amber-800">
-                    <span className="font-semibold">Referrer Reward:</span>
-                    <span className="font-bold">1 Full Week Complimentary Sweets Granted! 🍬</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-xs text-emerald-900 max-w-md mx-auto">
-                📱 Live gate arrival notifications will be sent to <strong>+91 {registeredSub.whatsappNumber}</strong>.
-              </div>
-
-              <div className="flex items-center justify-center gap-3 pt-2">
-                <button
-                  onClick={handlePrint}
-                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl text-xs font-bold flex items-center gap-1.5 border border-gray-300"
-                >
-                  <Printer className="w-4 h-4" />
-                  <span>Print Slip</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setIsRegistrationOpen(false);
-                    setRegisteredSub(null);
-                  }}
-                  className="px-6 py-2.5 bg-[#124E33] hover:bg-[#0C3822] text-white rounded-xl text-xs font-bold shadow-md"
-                >
-                  Done
-                </button>
-              </div>
-            </div>
-          ) : (
-            /* Streamlined Essential Registration Form */
-            <form onSubmit={handleSubmit} className="space-y-5">
-              
-              {/* 1. Essential Customer Info */}
-              <div className="bg-white p-4 sm:p-5 rounded-xl border border-[#E8E1D5] shadow-xs space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                  <div className="w-6 h-6 rounded-full bg-[#124E33] text-white flex items-center justify-center text-xs font-bold">
-                    1
-                  </div>
-                  <h3 className="font-bold text-sm text-[#0C3822] uppercase tracking-wide">
-                    Essential Contact Details
-                  </h3>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  <div>
-                    <label className="block font-semibold text-gray-700 mb-1">
-                      Full Name <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. Aarav Sharma"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-[#124E33] focus:ring-1 focus:ring-[#124E33] outline-hidden bg-[#FAF7F2]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-semibold text-gray-700 mb-1">
-                      Mobile / WhatsApp Number <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="tel"
-                      required
-                      placeholder="e.g. 9820144321"
-                      value={mobileNumber}
-                      onChange={(e) => {
-                        setMobileNumber(e.target.value);
-                        if (!whatsappNumber) setWhatsappNumber(e.target.value);
-                      }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-[#124E33] focus:ring-1 focus:ring-[#124E33] outline-hidden bg-[#FAF7F2]"
-                    />
-                  </div>
-                </div>
-
-                {/* Customer Category */}
+              {/* Slot & Start Date */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-gray-700 mb-1.5 text-xs">
-                    I am a: <span className="text-red-500">*</span>
-                  </label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {(['College Student', 'Working Professional', 'Other'] as CustomerCategory[]).map((cat) => (
-                      <button
-                        key={cat}
-                        type="button"
-                        onClick={() => setCategory(cat)}
-                        className={`p-2.5 rounded-lg text-xs font-bold border transition-all flex items-center justify-center gap-1.5 ${
-                          category === cat
-                            ? 'bg-[#124E33] text-white border-[#124E33] shadow-xs'
-                            : 'bg-[#FAF7F2] text-gray-700 border-gray-300 hover:bg-gray-100'
-                        }`}
-                      >
-                        {cat === 'College Student' && <GraduationCap className="w-3.5 h-3.5" />}
-                        {cat === 'Working Professional' && <Briefcase className="w-3.5 h-3.5" />}
-                        {cat === 'Other' && <User className="w-3.5 h-3.5" />}
-                        <span>{cat}</span>
-                      </button>
-                    ))}
-                  </div>
+                  <label className="block text-xs font-bold text-emerald-200 mb-1">डिलीवरी स्लॉट</label>
+                  <select
+                    value={mealSlot}
+                    onChange={(e) => setMealSlot(e.target.value as any)}
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3 py-2.5 text-sm text-white outline-none"
+                  >
+                    <option value="Both (Lunch & Dinner)">🍱 Lunch + 🌙 Dinner (Both Meals)</option>
+                    <option value="Lunch">🍱 Only Lunch ({config.deliverySlots.lunchTime})</option>
+                    <option value="Dinner">🌙 Only Dinner ({config.deliverySlots.dinnerTime})</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-emerald-200 mb-1">सर्विस शुरू करने की तारीख</label>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3 py-2.5 text-sm text-white font-bold outline-none"
+                  />
                 </div>
               </div>
 
-              {/* 2. Gate & Location Details (With Map Link Option) */}
-              <div className="bg-white p-4 sm:p-5 rounded-xl border border-[#E8E1D5] shadow-xs space-y-4">
-                <div className="flex items-center justify-between pb-2 border-b border-gray-100">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-[#124E33] text-white flex items-center justify-center text-xs font-bold">
-                      2
-                    </div>
-                    <h3 className="font-bold text-sm text-[#0C3822] uppercase tracking-wide">
-                      Delivery Location & Gate Specification
-                    </h3>
-                  </div>
-                  <span className="text-[10px] text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded font-bold">
-                    Punctual Handover
-                  </span>
+              {/* Customer Details */}
+              <div className="space-y-3 pt-1">
+                <div>
+                  <label className="block text-xs font-bold text-emerald-200 mb-1">कस्टमर का नाम *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="उदा. Amit Kumar"
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] focus:border-amber-500 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
+                  />
                 </div>
 
-                {category === 'College Student' ? (
-                  <div className="space-y-3 text-xs">
-                    <div>
-                      <label className="block font-semibold text-gray-700 mb-1">
-                        College Name & Campus <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="e.g. Techno India / IIT / St. Xavier's College"
-                        value={collegeName}
-                        onChange={(e) => setCollegeName(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-[#124E33] outline-hidden bg-[#FAF7F2]"
-                      />
-                    </div>
-                    <div className="p-3 bg-emerald-50/80 rounded-xl border border-emerald-200 flex items-center justify-between">
-                      <div>
-                        <span className="font-bold text-[#124E33] block">Lunch Delivery Gate:</span>
-                        <span className="text-gray-700">Delivered directly to the <strong>College Main Gate</strong></span>
-                      </div>
-                      <span className="text-xs bg-[#124E33] text-white px-2 py-1 rounded font-bold">
-                        COLLEGE GATE
-                      </span>
-                    </div>
-                  </div>
-                ) : category === 'Working Professional' ? (
-                  <div className="space-y-3 text-xs">
-                    <div>
-                      <label className="block font-semibold text-gray-700 mb-1">
-                        Company / Office Park Name <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="e.g. Infosys Tower 2 / TCS Gitanjali Park / Wipro Gate 1"
-                        value={companyName}
-                        onChange={(e) => setCompanyName(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-[#124E33] outline-hidden bg-[#FAF7F2]"
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setProDeliveryPoint('Office Gate')}
-                        className={`p-2.5 rounded-lg border text-xs font-bold ${
-                          proDeliveryPoint === 'Office Gate'
-                            ? 'bg-[#124E33] text-white border-[#124E33]'
-                            : 'bg-[#FAF7F2] text-gray-700 border-gray-300'
-                        }`}
-                      >
-                        🏢 Office Gate
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setProDeliveryPoint('Office Reception')}
-                        className={`p-2.5 rounded-lg border text-xs font-bold ${
-                          proDeliveryPoint === 'Office Reception'
-                            ? 'bg-[#124E33] text-white border-[#124E33]'
-                            : 'bg-[#FAF7F2] text-gray-700 border-gray-300'
-                        }`}
-                      >
-                        🛎️ Office Reception
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-xs">
-                    <label className="block font-semibold text-gray-700 mb-1">
-                      Delivery Location / Landmark <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. Study Library Front Gate / Clinic Gate"
-                      value={collegeName}
-                      onChange={(e) => setCollegeName(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-hidden bg-[#FAF7F2]"
-                    />
-                  </div>
-                )}
-
-                {/* Map Link / Live Location Option */}
-                <div className="pt-2 border-t border-gray-100 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="block font-semibold text-gray-700 text-xs flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-[#124E33]" />
-                      <span>Current Location Map Link (Optional for precise delivery):</span>
-                    </label>
-                    <button
-                      type="button"
-                      onClick={handleDetectGPS}
-                      disabled={isLocating}
-                      className="text-[11px] font-bold text-[#124E33] hover:text-[#0C3822] flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-md border border-emerald-200 transition-colors"
-                    >
-                      <Locate className={`w-3.5 h-3.5 ${isLocating ? 'animate-spin' : ''}`} />
-                      <span>{isLocating ? 'Detecting...' : 'Use My GPS Location'}</span>
-                    </button>
-                  </div>
-
+                <div>
+                  <label className="block text-xs font-bold text-emerald-200 mb-1">मोबाइल नंबर (कॉल & WhatsApp) *</label>
                   <input
-                    type="url"
-                    placeholder="e.g. https://maps.app.goo.gl/xyz or https://maps.google.com/..."
-                    value={mapLocationUrl}
-                    onChange={(e) => setMapLocationUrl(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs outline-hidden focus:border-[#124E33] bg-[#FAF7F2]"
+                    type="tel"
+                    required
+                    placeholder="10-digit Mobile Number"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] focus:border-amber-500 rounded-xl px-3.5 py-2.5 text-sm text-white font-mono outline-none"
                   />
+                </div>
 
-                  {locationSuccess && (
-                    <div className="text-[11px] text-emerald-700 font-semibold flex items-center gap-1">
-                      <Check className="w-3.5 h-3.5" />
-                      <span>GPS Coordinates captured & attached to your delivery profile!</span>
+                <div>
+                  <label className="block text-xs font-bold text-emerald-200 mb-1">कॉलेज / हॉस्टल / रूम डिलीवरी एड्रेस *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="उदा. Galgotias University Gate 2, Zenith Hostel Room 410"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    className="w-full bg-[#0F1A13] border border-[#243B2D] focus:border-amber-500 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
+                  />
+                </div>
+              </div>
+
+              {errorMessage && (
+                <p className="text-rose-400 text-xs font-bold text-center">{errorMessage}</p>
+              )}
+
+              {/* Total & Proceed */}
+              <div className="pt-3 border-t border-[#243B2D] flex items-center justify-between">
+                <div>
+                  <span className="text-xs text-slate-400 block">मंथली टोटल (Total Amount)</span>
+                  <span className="text-2xl font-black text-amber-400">₹{totalAmount}</span>
+                </div>
+
+                <button
+                  type="submit"
+                  className="px-6 py-3 bg-gradient-to-r from-[#D97706] to-[#F59E0B] text-[#111A14] font-black rounded-xl shadow-lg hover:brightness-110 transition flex items-center gap-2"
+                >
+                  Proceed to Payment ➔
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* STEP 2: UPI PAYMENT & UTR / SLIP UPLOAD */}
+        {step === 'payment' && (
+          <div>
+            <div className="text-center mb-5">
+              <span className="px-3 py-1 bg-amber-500/20 border border-amber-500/30 text-amber-300 text-xs font-bold rounded-full">
+                💳 Step 2: Subscription UPI Payment
+              </span>
+              <h2 className="text-xl font-black text-white mt-1">₹{totalAmount} का भुगतान करें</h2>
+              <p className="text-emerald-300/60 text-xs">QR स्कैन करके पे करें और नीचे UTR नंबर डालें</p>
+            </div>
+
+            {/* UPI QR Code Container */}
+            <div className="bg-[#0F1A13] border border-[#243B2D] rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-4 mb-5">
+              <img
+                src={config.upiQrImage}
+                alt="UPI QR Code"
+                className="w-32 h-32 object-cover rounded-xl border border-amber-500/30 bg-white p-1"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src =
+                    'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=' +
+                    config.upiId +
+                    '&pn=BringMyBite&am=' +
+                    totalAmount;
+                }}
+              />
+              <div className="text-center sm:text-left space-y-1.5 flex-1">
+                <div className="text-xs text-slate-400">Official Merchant UPI ID:</div>
+                <div className="text-sm font-mono font-bold text-amber-300 bg-[#18271E] px-3 py-1.5 rounded-lg border border-[#243B2D] flex items-center justify-between">
+                  <span>{config.upiId}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(config.upiId);
+                      alert('UPI ID Copy Ho Gayi!');
+                    }}
+                    className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded font-bold"
+                  >
+                    Copy
+                  </button>
+                </div>
+                <div className="text-[11px] text-emerald-300/70">
+                  Bank: <span className="text-white font-semibold">{config.bankName}</span> • A/C: <span className="font-mono text-white">{config.bankAccountNumber}</span>
+                </div>
+              </div>
+            </div>
+
+            <form onSubmit={handleFinalSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-amber-300 uppercase mb-1">
+                  12-Digit UPI Ref / UTR Number (अनिवार्य) *
+                </label>
+                <input
+                  type="text"
+                  required
+                  maxLength={22}
+                  placeholder="उदा. 423871982341 (GooglePay/PhonePe se copy karein)"
+                  value={utrNumber}
+                  onChange={(e) => setUtrNumber(e.target.value)}
+                  className="w-full bg-[#0F1A13] border-2 border-amber-500/50 focus:border-amber-400 rounded-xl px-4 py-2.5 text-sm text-white font-mono font-bold outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-emerald-200 mb-1">
+                  📸 पेमेंट रसीद / स्क्रीनशॉट अपलोड करें
+                </label>
+                <div className="border border-dashed border-[#2B4534] rounded-xl p-3 bg-[#0F1A13] text-center">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    id="monthly-slip-upload"
+                    className="hidden"
+                  />
+                  <label
+                    htmlFor="monthly-slip-upload"
+                    className="cursor-pointer text-xs text-amber-300 font-bold hover:underline flex items-center justify-center gap-2"
+                  >
+                    <span>📎</span>
+                    <span>{slipFileName ? `चयनित: ${slipFileName}` : 'गैलरी से पेमेंट रसीद चुनें'}</span>
+                  </label>
+                  {paymentSlip && (
+                    <div className="mt-2 flex justify-center">
+                      <img
+                        src={paymentSlip}
+                        alt="Slip Preview"
+                        className="h-16 object-cover rounded-lg border border-emerald-500/30"
+                      />
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* 3. Package Selection & Duration */}
-              <div className="bg-white p-4 sm:p-5 rounded-xl border border-[#E8E1D5] shadow-xs space-y-4">
-                <div className="flex items-center justify-between pb-2 border-b border-gray-100">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-[#124E33] text-white flex items-center justify-center text-xs font-bold">
-                      3
-                    </div>
-                    <h3 className="font-bold text-sm text-[#0C3822] uppercase tracking-wide">
-                      Select Package & Duration
-                    </h3>
-                  </div>
-                  <span className="text-[10px] text-amber-800 bg-amber-50 px-2 py-0.5 rounded font-bold">
-                    13 Meals / Week
-                  </span>
-                </div>
+              {errorMessage && (
+                <p className="text-rose-400 text-xs font-bold text-center">{errorMessage}</p>
+              )}
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  
-                  {/* Veg Classic */}
-                  <div
-                    onClick={() => setPackageType('VEG CLASSIC')}
-                    className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
-                      packageType === 'VEG CLASSIC'
-                        ? 'border-[#124E33] bg-emerald-50/60 shadow-xs'
-                        : 'border-gray-200 bg-[#FAF7F2] hover:border-gray-300'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-xs text-[#124E33]">🥗 VEG CLASSIC</span>
-                      <span className="text-xs font-extrabold text-[#124E33]">₹{pricing.vegMonthly}/mo</span>
-                    </div>
-                    <p className="text-[11px] text-gray-600 mt-1">100% Pure Veg • 18–22g Protein</p>
-                  </div>
-
-                  {/* Egg Delight */}
-                  <div
-                    onClick={() => setPackageType('EGG DELIGHT')}
-                    className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
-                      packageType === 'EGG DELIGHT'
-                        ? 'border-[#D99B26] bg-amber-50/60 shadow-xs'
-                        : 'border-gray-200 bg-[#FAF7F2] hover:border-gray-300'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-xs text-[#A4670E]">🥚 EGG DELIGHT</span>
-                      <span className="text-xs font-extrabold text-[#A4670E]">₹{pricing.eggMonthly}/mo</span>
-                    </div>
-                    <p className="text-[11px] text-gray-600 mt-1">Egg Curries & Bhurji • 20–24g Protein</p>
-                  </div>
-
-                  {/* Non-Veg Club */}
-                  <div
-                    onClick={() => setPackageType('NON-VEG CLUB')}
-                    className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
-                      packageType === 'NON-VEG CLUB'
-                        ? 'border-[#8B2626] bg-rose-50/60 shadow-xs'
-                        : 'border-gray-200 bg-[#FAF7F2] hover:border-gray-300'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-xs text-[#8B2626]">🍗 NON-VEG CLUB</span>
-                      <span className="text-xs font-extrabold text-[#8B2626]">₹{pricing.nonVegMonthly}/mo</span>
-                    </div>
-                    <p className="text-[11px] text-gray-600 mt-1">Chicken Curry 3pcs • 25–30g Protein</p>
-                  </div>
-
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-2">
-                  <div>
-                    <label className="block font-semibold text-gray-700 mb-1">Meal Preference</label>
-                    <select
-                      value={mealPreference}
-                      onChange={(e) => setMealPreference(e.target.value as MealPreference)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-hidden bg-[#FAF7F2]"
-                    >
-                      <option value="Lunch + Dinner">Lunch + Dinner (Standard)</option>
-                      <option value="Lunch Only">Lunch Only</option>
-                      <option value="Dinner Only">Dinner Only</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block font-semibold text-gray-700 mb-1">Duration</label>
-                    <select
-                      value={duration}
-                      onChange={(e) => setDuration(e.target.value as SubscriptionDuration)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-hidden bg-[#FAF7F2]"
-                    >
-                      <option value="1 Month">1 Month (Standard)</option>
-                      <option value="3 Months">3 Months (5% Savings)</option>
-                      <option value="6 Months">6 Months (10% Savings)</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              {/* 4. Referral Code & Bonus Offer Box */}
-              <div className="bg-gradient-to-br from-[#FFF9E6] to-[#FFF3CD] p-4 rounded-xl border border-[#D99B26] shadow-xs space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="font-bold text-xs text-[#1A261E] flex items-center gap-1.5">
-                    <Gift className="w-4 h-4 text-[#D99B26]" />
-                    <span>Have a Friend's Referral Code?</span>
-                  </label>
-                  <span className="text-[10px] uppercase font-extrabold px-2 py-0.5 bg-[#D99B26] text-black rounded-full">
-                    Sweets Reward
-                  </span>
-                </div>
-
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="Enter friend's code (e.g. SWEET-AARAV101) or mobile"
-                    value={referralCodeInput}
-                    onChange={(e) => setReferralCodeInput(e.target.value.toUpperCase())}
-                    className="flex-1 px-3 py-2 border border-[#D99B26]/60 rounded-lg text-xs font-mono font-bold uppercase bg-white outline-hidden"
-                  />
-                </div>
-
-                {referralCodeValid ? (
-                  <div className="text-[11px] font-bold text-[#124E33] flex items-center gap-1.5 bg-emerald-50/90 p-2 rounded-lg border border-emerald-200">
-                    <PartyPopper className="w-4 h-4 text-[#D99B26] shrink-0" />
-                    <span>Referral linked! Your friend will receive 1 Full Week of Complimentary Sweets in their tiffin! 🍬</span>
-                  </div>
-                ) : (
-                  <p className="text-[11px] text-gray-600">
-                    Enter the referral code of any existing subscriber to reward them with 7 continuous days of fresh desserts.
-                  </p>
-                )}
-
-                {/* 2x Monthly Bonus reminder */}
-                <div className="pt-2 border-t border-[#D99B26]/30 text-[11px] text-[#124E33] font-semibold flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-[#D99B26]" />
-                  <span>2x Monthly Bonus Feasts (1st & 15th) automatically included in this subscription!</span>
-                </div>
-              </div>
-
-              {/* 5. Payment & Fast Checkout */}
-              <div className="bg-white p-4 sm:p-5 rounded-xl border border-[#E8E1D5] shadow-xs space-y-4">
-                <div className="flex items-center justify-between pb-2 border-b border-gray-100">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-[#124E33] text-white flex items-center justify-center text-xs font-bold">
-                      4
-                    </div>
-                    <h3 className="font-bold text-sm text-[#0C3822] uppercase tracking-wide">
-                      Payment & Confirmation
-                    </h3>
-                  </div>
-
-                  <div className="text-right">
-                    <span className="text-[11px] text-gray-500 block">Payable:</span>
-                    <span className="text-lg font-black text-[#124E33]">
-                      ₹{calculatedTotal.toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  <div>
-                    <label className="block font-semibold text-gray-700 mb-1.5">Prepaid Payment Mode</label>
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setPaymentMethod('UPI')}
-                        className={`flex-1 p-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                          paymentMethod === 'UPI' || paymentMethod === 'QR Code'
-                            ? 'bg-[#124E33] text-white border-[#124E33] shadow-xs'
-                            : 'bg-[#FAF7F2] text-gray-700 border-gray-300 hover:border-gray-400'
-                        }`}
-                      >
-                        <QrCode className="w-3.5 h-3.5 text-[#F2C94C]" />
-                        <span>UPI / QR Code</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setPaymentMethod('Bank Transfer')}
-                        className={`flex-1 p-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                          paymentMethod === 'Bank Transfer'
-                            ? 'bg-[#124E33] text-white border-[#124E33] shadow-xs'
-                            : 'bg-[#FAF7F2] text-gray-700 border-gray-300 hover:border-gray-400'
-                        }`}
-                      >
-                        <Building2 className="w-3.5 h-3.5 text-[#F2C94C]" />
-                        <span>Axis NetBanking</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block font-semibold text-gray-700 mb-1.5">
-                      Transaction UTR / Reference No. <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. UPI Ref / Axis IMPS UTR"
-                      value={transactionId}
-                      onChange={(e) => setTransactionId(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-xl outline-hidden focus:border-[#124E33] bg-[#FAF7F2] font-mono text-xs"
-                    />
-                  </div>
-                </div>
-
-                {/* Official Bank Details & QR Component */}
-                <PaymentDetailsCard
-                  amount={calculatedTotal}
-                  orderReference={`Sub-${packageType}-${duration}`}
-                />
-              </div>
-
-              {/* Submit CTA */}
-              <div className="pt-2 flex items-center justify-between flex-wrap gap-3">
+              <div className="flex gap-3 pt-2">
                 <button
                   type="button"
-                  onClick={() => setIsRegistrationOpen(false)}
-                  className="px-4 py-2.5 text-xs font-bold text-gray-600 hover:text-black"
+                  onClick={() => setStep('details')}
+                  className="w-1/3 py-3 bg-[#0F1A13] hover:bg-[#1f3527] text-slate-300 font-bold text-xs rounded-xl border border-[#243B2D] transition"
                 >
-                  Cancel
+                  ← वापस जाएं
                 </button>
 
                 <button
                   type="submit"
-                  className="px-8 py-3 bg-[#124E33] hover:bg-[#0C3822] text-white font-bold text-sm rounded-xl shadow-lg hover:shadow-xl transition-all active:scale-98 flex items-center gap-2"
+                  className="w-2/3 py-3 bg-gradient-to-r from-[#D97706] to-[#F59E0B] text-[#111A14] font-black rounded-xl shadow-lg hover:brightness-110 transition flex items-center justify-center gap-2"
                 >
-                  <Sparkles className="w-4 h-4 text-[#F2C94C]" />
-                  <span>Submit Registration & Subscribe (₹{calculatedTotal.toLocaleString()})</span>
+                  <span>✅</span>
+                  <span>सब्सक्रिप्शन एक्टिवेशन सबमिट करें</span>
                 </button>
               </div>
-
             </form>
-          )}
+          </div>
+        )}
 
-        </div>
+        {/* STEP 3: SUBMITTED SUCCESS CARD */}
+        {step === 'success' && submittedOrder && (
+          <div className="text-center py-4 space-y-4">
+            <div className="w-16 h-16 bg-amber-500/20 border-2 border-amber-500/40 text-amber-400 rounded-full flex items-center justify-center mx-auto text-2xl animate-pulse">
+              📋
+            </div>
 
+            <div>
+              <h2 className="text-2xl font-black text-white">मंथली सब्सक्रिप्शन रिक्वेस्ट दर्ज हुई!</h2>
+              <p className="text-emerald-300/80 text-xs mt-1">
+                Subscription ID: <span className="font-mono font-bold text-amber-300">{submittedOrder.id}</span>
+              </p>
+            </div>
+
+            <div className="bg-[#0F1A13] border border-[#243B2D] rounded-2xl p-4 text-left text-xs space-y-2">
+              <div className="flex justify-between">
+                <span className="text-slate-400">वेरिफिकेशन स्थिति:</span>
+                <span className="px-2 py-0.5 bg-yellow-500/20 text-yellow-300 font-bold rounded-full text-[10px]">
+                  🟡 Pending Admin Approval
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">चुना गया पैकेज:</span>
+                <span className="text-white font-bold">{submittedOrder.mealPlan}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">कुल भुगतान:</span>
+                <span className="text-amber-400 font-black">₹{submittedOrder.amount}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">UTR नंबर:</span>
+                <span className="font-mono text-white">{submittedOrder.utrNumber}</span>
+              </div>
+            </div>
+
+            <p className="text-[11px] text-slate-400">
+              एडमिन टीम UTR और पेमेंट चेक करके आपका मील कार्ड एक्टिवेट करेगी।
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-2.5 pt-2">
+              <a
+                href={`https://wa.me/${cleanWa}?text=Hello%20Bring%20My%20Bite,%20Maine%20Monthly%20Subscription%20register%20kiya%20hai.%0ASubscription%20ID:%20${submittedOrder.id}%0APlan:%20${submittedOrder.mealPlan}%0AAmount:%20₹${submittedOrder.amount}%0AUTR:%20${submittedOrder.utrNumber}`}
+                target="_blank"
+                rel="noreferrer"
+                className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition"
+              >
+                <span>💬</span>
+                <span>WhatsApp पर रसीद भेजें</span>
+              </a>
+
+              <button
+                type="button"
+                onClick={resetAndClose}
+                className="w-full py-3 bg-[#0F1A13] hover:bg-[#1a2c20] text-slate-300 font-bold text-xs rounded-xl border border-[#243B2D] transition"
+              >
+                Done / Close
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
