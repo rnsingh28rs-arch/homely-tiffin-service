@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { getSiteConfig } from '../../utils/siteConfigStore';
 import { getStoredOrders, updateOrderStatus, OrderItem, OrderStatus } from '../../utils/orderStore';
+import { getStoredFundRequests, updateFundRequestStatus, FundRequest } from '../../utils/inventoryStore';
+import { QuickCalculator } from '../common/QuickCalculator';
 
-type AdminMainTab = 'orders' | 'analytics' | 'subscribers' | 'delivery' | 'quickSettings';
+type AdminMainTab = 'orders' | 'groceryClearance' | 'analytics' | 'subscribers' | 'delivery';
 
 export const AdminPanel: React.FC = () => {
   const [config] = useState(getSiteConfig());
@@ -10,21 +12,28 @@ export const AdminPanel: React.FC = () => {
   const [pinInput, setPinInput] = useState<string>('');
   const [pinError, setPinError] = useState<string>('');
   
-  // Navigation & Data State
+  // Navigation & State
   const [activeMainTab, setActiveMainTab] = useState<AdminMainTab>('orders');
   const [orders, setOrders] = useState<OrderItem[]>(getStoredOrders());
+  const [fundRequests, setFundRequests] = useState<FundRequest[]>(getStoredFundRequests());
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'approved' | 'out_for_delivery' | 'rejected'>('all');
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string>('');
+  const [showCalculator, setShowCalculator] = useState(false);
 
-  const refreshOrders = () => {
+  const refreshAllData = () => {
     setOrders(getStoredOrders());
+    setFundRequests(getStoredFundRequests());
   };
 
   useEffect(() => {
-    refreshOrders();
-    window.addEventListener('bmb_orders_updated', refreshOrders);
-    return () => window.removeEventListener('bmb_orders_updated', refreshOrders);
+    refreshAllData();
+    window.addEventListener('bmb_orders_updated', refreshAllData);
+    window.addEventListener('bmb_inventory_updated', refreshAllData);
+    return () => {
+      window.removeEventListener('bmb_orders_updated', refreshAllData);
+      window.removeEventListener('bmb_inventory_updated', refreshAllData);
+    };
   }, []);
 
   const handleLogin = (e: React.FormEvent) => {
@@ -39,28 +48,34 @@ export const AdminPanel: React.FC = () => {
 
   const handleStatusChange = (orderId: string, status: OrderStatus, reason?: string) => {
     updateOrderStatus(orderId, status, reason);
-    setActionMessage(`Order ${orderId} status updated to: ${status.toUpperCase()}!`);
+    setActionMessage(`Order ${orderId} marked as ${status.toUpperCase()}!`);
     setTimeout(() => setActionMessage(''), 3500);
   };
 
   const handleReject = (orderId: string) => {
-    const reason = window.prompt('Enter reason for declining order:', 'Payment UTR verification failed');
+    const reason = window.prompt('Enter exact reason for declining order:', 'Payment UTR verification failed / Fake UTR');
     if (reason !== null) {
       handleStatusChange(orderId, 'rejected', reason || 'Payment unverified');
     }
   };
 
-  // Calculations for Analytics Tab
-  const totalRevenue = orders
-    .filter((o) => o.status === 'approved' || o.status === 'out_for_delivery' || o.status === 'delivered')
-    .reduce((sum, o) => sum + (o.amount || 0), 0);
+  // Grocery Fund Clearance
+  const handleFundAction = (reqId: string, status: 'approved' | 'rejected') => {
+    const remarks = window.prompt('Enter clearance note / payment mode:', status === 'approved' ? 'UPI Funds Released to Manager' : 'Budget Exceeded');
+    if (remarks !== null) {
+      updateFundRequestStatus(reqId, status, remarks);
+      setActionMessage(`Fund Request ${reqId} ${status.toUpperCase()}!`);
+      setTimeout(() => setActionMessage(''), 3500);
+    }
+  };
 
-  const pendingCount = orders.filter((o) => o.status === 'pending').length;
-  const activeSubs = orders.filter((o) => o.planType === 'Monthly' && o.status !== 'rejected');
-  const grNoidaOrders = orders.filter((o) => o.city === 'Greater Noida' || !o.city);
-  const noidaOrders = orders.filter((o) => o.city === 'Noida');
+  const pendingOrders = orders.filter((o) => o.status === 'pending');
+  const approvedOrders = orders.filter((o) => o.status === 'approved');
+  const declinedOrders = orders.filter((o) => o.status === 'rejected');
+  const outOrders = orders.filter((o) => o.status === 'out_for_delivery');
 
   const filteredOrders = orders.filter((o) => (filterStatus === 'all' ? true : o.status === filterStatus));
+  const pendingFunds = fundRequests.filter((f) => f.status === 'pending');
 
   if (!isAuthenticated) {
     return (
@@ -70,7 +85,7 @@ export const AdminPanel: React.FC = () => {
             💼
           </div>
           <h2 className="text-2xl font-black text-white">Staff & Admin Login</h2>
-          <p className="text-emerald-300/60 text-xs mt-1">Enter Master PIN to access Admin Command Center</p>
+          <p className="text-emerald-300/60 text-xs mt-1">Enter Master PIN to access Orders & Grocery Desk</p>
 
           <form onSubmit={handleLogin} className="mt-6 space-y-4">
             <input
@@ -96,18 +111,18 @@ export const AdminPanel: React.FC = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 relative">
       {/* Header Bar */}
       <div className="bg-[#15231B] border border-[#243B2D] rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6 shadow-xl">
         <div>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-600 to-amber-400 text-slate-950 font-black flex items-center justify-center text-lg">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-600 to-amber-400 text-slate-950 font-black flex items-center justify-center text-lg shadow-md">
               💼
             </div>
             <div>
-              <h1 className="text-2xl font-black text-white">Admin Command Center</h1>
+              <h1 className="text-2xl font-black text-white">Admin Operations & Clearance Desk</h1>
               <p className="text-emerald-300/60 text-xs">
-                Live Orders, Revenue Analytics, Subscribers Directory & Delivery Dispatch
+                Real-time Orders, Second-Precision Timestamping, Mandi Fund Approvals & Fleet Dispatch
               </p>
             </div>
           </div>
@@ -116,26 +131,40 @@ export const AdminPanel: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2.5">
           <button
             type="button"
-            onClick={refreshOrders}
-            className="px-4 py-2 bg-[#0F1A13] hover:bg-[#203326] text-emerald-200 text-xs font-bold rounded-xl border border-[#243B2D] transition cursor-pointer flex items-center gap-1.5"
+            onClick={() => setShowCalculator(!showCalculator)}
+            className="px-3.5 py-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs font-bold rounded-xl border border-amber-500/40 transition cursor-pointer flex items-center gap-1.5"
           >
-            <span>🔄</span> Refresh Data
+            <span>🧮</span> {showCalculator ? 'Hide Calc' : 'Calculator'}
+          </button>
+          <button
+            type="button"
+            onClick={refreshAllData}
+            className="px-3.5 py-2 bg-[#0F1A13] hover:bg-[#203326] text-emerald-200 text-xs font-bold rounded-xl border border-[#243B2D] transition cursor-pointer flex items-center gap-1.5"
+          >
+            <span>🔄</span> Refresh
           </button>
           <a
             href="#superadmin"
-            className="px-4 py-2 bg-[#18271E] hover:bg-[#243B2D] text-amber-300 text-xs font-bold rounded-xl border border-amber-500/30 transition flex items-center gap-1.5"
+            className="px-3.5 py-2 bg-[#18271E] hover:bg-[#243B2D] text-amber-300 text-xs font-bold rounded-xl border border-amber-500/30 transition flex items-center gap-1.5"
           >
-            <span>👑</span> Super Admin
+            <span>👑</span> CEO Suite
           </a>
           <button
             type="button"
             onClick={() => setIsAuthenticated(false)}
-            className="px-4 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 text-xs font-bold rounded-xl border border-rose-500/30 transition cursor-pointer"
+            className="px-3.5 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 text-xs font-bold rounded-xl border border-rose-500/30 transition cursor-pointer"
           >
-            Lock Panel
+            Lock
           </button>
         </div>
       </div>
+
+      {/* Floating Calculator Overlay */}
+      {showCalculator && (
+        <div className="fixed bottom-6 right-6 z-50 shadow-2xl">
+          <QuickCalculator onClose={() => setShowCalculator(false)} />
+        </div>
+      )}
 
       {actionMessage && (
         <div className="mb-6 p-4 bg-emerald-500/20 border border-emerald-500/40 text-emerald-200 rounded-2xl text-xs font-bold flex items-center gap-2">
@@ -147,11 +176,11 @@ export const AdminPanel: React.FC = () => {
       {/* Main Feature Tabs */}
       <div className="flex gap-2 overflow-x-auto pb-3 mb-6 scrollbar-none border-b border-[#243B2D]">
         {[
-          { id: 'orders', label: `📦 Orders Desk (${orders.length})`, badge: pendingCount > 0 ? `🔴 ${pendingCount}` : undefined },
-          { id: 'analytics', label: '📊 Financials & Analytics' },
-          { id: 'subscribers', label: `👥 Subscribers Directory (${activeSubs.length})` },
-          { id: 'delivery', label: '🚚 Delivery Gates & Dispatch' },
-          { id: 'quickSettings', label: '⚙️ Live Quick Settings' },
+          { id: 'orders', label: `📦 Orders Desk (${orders.length})`, badge: pendingOrders.length > 0 ? `🔴 ${pendingOrders.length}` : undefined },
+          { id: 'groceryClearance', label: `💰 Grocery & Mandi Funds (${fundRequests.length})`, badge: pendingFunds.length > 0 ? `⚡ ${pendingFunds.length}` : undefined },
+          { id: 'analytics', label: '📊 Live Revenue & Profit' },
+          { id: 'subscribers', label: `👥 Subscribers Directory` },
+          { id: 'delivery', label: '🚚 Delivery Fleet Dispatch' },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -173,17 +202,17 @@ export const AdminPanel: React.FC = () => {
         ))}
       </div>
 
-      {/* TAB 1: ORDERS RECEIVED DESK */}
+      {/* TAB 1: ORDERS RECEIVED DESK (WITH STRICT STATUS & EXACT SECONDS) */}
       {activeMainTab === 'orders' && (
         <div className="space-y-4">
-          {/* Sub-Filters */}
+          {/* Sub Filter Chips */}
           <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
             {[
-              { id: 'all', label: `All (${orders.length})` },
-              { id: 'pending', label: `🟡 Pending (${pendingCount})` },
-              { id: 'approved', label: `🟢 Approved (${orders.filter((o) => o.status === 'approved').length})` },
-              { id: 'out_for_delivery', label: `🚚 Out for Delivery (${orders.filter((o) => o.status === 'out_for_delivery').length})` },
-              { id: 'rejected', label: `🔴 Declined (${orders.filter((o) => o.status === 'rejected').length})` },
+              { id: 'all', label: `All Orders (${orders.length})` },
+              { id: 'pending', label: `🟡 Pending Approval (${pendingOrders.length})` },
+              { id: 'approved', label: `🟢 Approved (${approvedOrders.length})` },
+              { id: 'out_for_delivery', label: `🚚 Out for Delivery (${outOrders.length})` },
+              { id: 'rejected', label: `🔴 Declined / Rejected (${declinedOrders.length})` },
             ].map((sub) => (
               <button
                 key={sub.id}
@@ -191,7 +220,7 @@ export const AdminPanel: React.FC = () => {
                 onClick={() => setFilterStatus(sub.id as any)}
                 className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                   filterStatus === sub.id
-                    ? 'bg-amber-500 text-slate-950 font-black'
+                    ? 'bg-amber-500 text-slate-950 font-black shadow-md'
                     : 'bg-[#0F1A13] text-slate-400 border border-[#243B2D]'
                 }`}
               >
@@ -203,16 +232,19 @@ export const AdminPanel: React.FC = () => {
           {filteredOrders.length === 0 ? (
             <div className="bg-[#15231B] border border-[#243B2D] rounded-3xl p-12 text-center text-slate-400">
               <p className="text-3xl mb-2">📭</p>
-              <p className="text-sm font-bold text-white">No Orders Found in this category</p>
+              <p className="text-sm font-bold text-white">No orders in this category</p>
+              <p className="text-xs text-slate-500 mt-1">Check other filter tabs or refresh.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4">
               {filteredOrders.map((order) => {
                 const cleanPhone = order.phone.replace(/[^0-9]/g, '');
 
-                const approveWaMsg = `🎉 *Bring My Bite - Order Confirmed!* %0A%0A*Order ID:* ${order.id}%0A*Customer:* ${order.customerName}%0A*Meal:* ${order.mealPlan}%0A*Delivery Zone:* ${order.city || 'Greater Noida'} (${order.estimatedTime || '30 Mins'})%0A*Address:* ${order.address}%0A*Total Bill:* ₹${order.amount} (UTR Verified ✅)%0A%0A🍱 *Your meal is being prepared fresh in our kitchen!*`;
+                // Formatted WhatsApp Digital Receipt
+                const approveWaMsg = `🧾 *BRING MY BITE • OFFICIAL ORDER INVOICE* %0A━━━━━━━━━━━━━━━━━━━━━━━%0A🆔 *Order ID:* ${order.id}%0A👤 *Customer:* ${order.customerName}%0A📞 *Mobile:* ${order.phone}%0A⏱️ *Order Time:* ${order.formattedTimestamp}%0A📍 *Delivery Zone:* ${order.city || 'Greater Noida'} (${order.estimatedTime || '30 Mins ETA'})%0A🏢 *Gate/Address:* ${order.address}%0A━━━━━━━━━━━━━━━━━━━━━━━%0A🍱 *Meal Plan:* ${order.mealPlan}%0A⏰ *Slot:* ${order.slot}%0A💰 *Total Amount:* ₹${order.amount}.00%0A💳 *Payment Status:* VERIFIED ✅ (UTR: ${order.utrNumber})%0A━━━━━━━━━━━━━━━━━━━━━━━%0A👨‍🍳 *Status:* Kitchen is preparing your fresh meal! Delivery boy will arrive at your gate shortly.%0A📞 *Helpdesk:* ${config.phone}`;
 
-                const rejectWaMsg = `⚠️ *Bring My Bite - Order Alert* %0A%0A*Order ID:* ${order.id}%0A*Status:* Payment Unverified / Declined%0A*Reason:* ${order.rejectionReason || 'UTR verification mismatch'}%0A%0APlease reply to this message with your payment screenshot.`;
+                // Formatted WhatsApp Decline Notice
+                const rejectWaMsg = `⚠️ *BRING MY BITE • PAYMENT DECLINE ALERT* %0A━━━━━━━━━━━━━━━━━━━━━━━%0A🆔 *Order ID:* ${order.id}%0A👤 *Customer:* ${order.customerName}%0A⏱️ *Attempt Time:* ${order.formattedTimestamp}%0A❌ *Status:* Payment Unverified / Declined%0A❗ *Decline Reason:* ${order.rejectionReason || 'UTR number does not match banking records'}%0A━━━━━━━━━━━━━━━━━━━━━━━%0A📸 *Action Required:* Please reply directly to this WhatsApp message with your UPI payment screenshot to verify & unlock your meal order.%0A📞 *Support:* ${config.phone}`;
 
                 return (
                   <div
@@ -224,17 +256,24 @@ export const AdminPanel: React.FC = () => {
                         ? 'border-emerald-500/30'
                         : order.status === 'out_for_delivery'
                         ? 'border-sky-500/30'
-                        : 'border-rose-500/30 opacity-80'
+                        : 'border-rose-500/40 bg-rose-950/10'
                     }`}
                   >
                     <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-                      {/* Customer Info */}
+                      {/* Customer Info & Exact Timestamp */}
                       <div className="space-y-1.5 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="font-mono font-black text-amber-400 text-sm">{order.id}</span>
+                          
+                          {/* High-Precision Seconds Badge */}
+                          <span className="px-2.5 py-0.5 bg-[#0F1A13] border border-[#2B4534] text-emerald-300 font-mono text-[11px] font-bold rounded-lg flex items-center gap-1">
+                            <span>⏱️</span> {order.formattedTimestamp}
+                          </span>
+
                           <span className="px-2 py-0.5 bg-[#0F1A13] border border-amber-500/30 text-amber-300 rounded-full text-[10px] font-bold">
                             📍 {order.city || 'Greater Noida'} • {order.estimatedTime || '30 Mins'}
                           </span>
+
                           <span
                             className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
                               order.status === 'pending'
@@ -251,37 +290,35 @@ export const AdminPanel: React.FC = () => {
                             {order.status === 'out_for_delivery' && '🚚 Out for Delivery'}
                             {order.status === 'rejected' && '🔴 Declined'}
                           </span>
-                          <span className="text-[11px] text-slate-400">
-                            {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </span>
                         </div>
 
-                        <div className="text-base font-black text-white">
+                        <div className="text-base font-black text-white pt-0.5">
                           {order.customerName}{' '}
                           <span className="text-xs font-normal text-emerald-300/80 font-mono">({order.phone})</span>
                         </div>
 
                         <div className="text-xs text-slate-300">
                           📍 <span className="text-white font-medium">{order.address}</span> • 🍱{' '}
-                          <span className="text-amber-300 font-bold">{order.mealPlan}</span>
+                          <span className="text-amber-300 font-bold">{order.mealPlan}</span> • Slot:{' '}
+                          <span className="text-white font-bold">{order.slot}</span>
                         </div>
 
-                        {order.rejectionReason && (
-                          <div className="text-xs text-rose-300 font-bold pt-1">
-                            Decline Reason: {order.rejectionReason}
+                        {order.status === 'rejected' && order.rejectionReason && (
+                          <div className="p-2.5 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-300 font-bold">
+                            ❗ Decline Reason: {order.rejectionReason}
                           </div>
                         )}
                       </div>
 
-                      {/* Payment Box */}
+                      {/* Payment Verification Box */}
                       <div className="bg-[#0F1A13] border border-[#243B2D] p-3.5 rounded-2xl flex items-center gap-4 min-w-[280px]">
                         <div className="space-y-0.5 flex-1">
-                          <div className="text-[10px] text-slate-400 uppercase font-bold">UTR / UPI Ref</div>
+                          <div className="text-[10px] text-slate-400 uppercase font-bold">UTR / Ref Number</div>
                           <div className="text-xs font-mono font-bold text-amber-300 select-all">{order.utrNumber}</div>
                           <div className="text-sm font-black text-white pt-1">
                             ₹{order.amount}{' '}
                             {order.deliveryCharge > 0 && (
-                              <span className="text-[10px] text-amber-300 font-normal">(Incl. ₹{order.deliveryCharge} Noida)</span>
+                              <span className="text-[10px] text-amber-300 font-normal">(+₹{order.deliveryCharge} Noida)</span>
                             )}
                           </div>
                         </div>
@@ -291,7 +328,7 @@ export const AdminPanel: React.FC = () => {
                             type="button"
                             onClick={() => setPreviewImage(order.paymentSlip)}
                             className="group relative w-14 h-14 rounded-xl overflow-hidden border border-emerald-500/40 hover:scale-105 transition cursor-pointer"
-                            title="Zoom Screenshot"
+                            title="Click to Zoom Screenshot"
                           >
                             <img src={order.paymentSlip} alt="Slip" className="w-full h-full object-cover" />
                             <span className="absolute inset-0 bg-black/40 flex items-center justify-center text-[10px] text-white font-bold opacity-0 group-hover:opacity-100 transition">
@@ -334,6 +371,7 @@ export const AdminPanel: React.FC = () => {
                           </button>
                         )}
 
+                        {/* WhatsApp Receipt or Decline Alert Button */}
                         <a
                           href={`https://wa.me/${cleanPhone}?text=${
                             order.status === 'rejected' ? rejectWaMsg : approveWaMsg
@@ -355,162 +393,227 @@ export const AdminPanel: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 2: FINANCIALS & ANALYTICS */}
+      {/* TAB 2: GROCERY & MANDI FUND CLEARANCE (CHEF -> MANAGER -> ADMIN) */}
+      {activeMainTab === 'groceryClearance' && (
+        <div className="space-y-6">
+          <div className="bg-[#15231B] border border-[#243B2D] rounded-3xl p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+              <div>
+                <h3 className="text-lg font-black text-amber-300 flex items-center gap-2">
+                  🛒 Daily Mandi Grocery & Kitchen Expenses Clearance
+                </h3>
+                <p className="text-xs text-emerald-300/60 mt-0.5">
+                  Chef creates items list $\rightarrow$ Manager inputs Kg rates $\rightarrow$ Admin verifies and releases money
+                </p>
+              </div>
+
+              <div className="p-3 bg-[#0F1A13] border border-amber-500/30 rounded-2xl text-right">
+                <span className="text-[10px] text-slate-400 uppercase font-bold block">Total Cleared Expenses</span>
+                <span className="text-xl font-black text-amber-400">
+                  ₹{fundRequests.filter((f) => f.status === 'approved').reduce((s, f) => s + f.totalBudget, 0).toLocaleString()}
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {fundRequests.map((req) => (
+                <div
+                  key={req.id}
+                  className={`bg-[#0F1A13] border rounded-2xl p-5 space-y-4 ${
+                    req.status === 'pending' ? 'border-amber-500/50' : req.status === 'approved' ? 'border-emerald-500/30' : 'border-rose-500/30'
+                  }`}
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#243B2D] pb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono font-bold text-amber-400 text-sm">{req.id}</span>
+                      <span className="px-2 py-0.5 bg-[#18271E] text-slate-300 text-[10px] font-bold rounded-lg">
+                        Date: {req.date} • {req.formattedTimestamp}
+                      </span>
+                      <span className="text-xs text-emerald-300 font-bold">Requested by: {req.requestedBy}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                          req.status === 'pending'
+                            ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/40'
+                            : req.status === 'approved'
+                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                            : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                        }`}
+                      >
+                        {req.status === 'pending' ? '🟡 Pending Admin Approval' : req.status === 'approved' ? '🟢 Funds Released' : '🔴 Declined'}
+                      </span>
+                      <span className="text-base font-black text-amber-300 ml-2">Total: ₹{req.totalBudget}</span>
+                    </div>
+                  </div>
+
+                  {/* Items List Table */}
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs text-slate-300">
+                      <thead className="bg-[#18271E] text-slate-400 text-[10px] uppercase">
+                        <tr>
+                          <th className="p-2">Item Name</th>
+                          <th className="p-2">Quantity</th>
+                          <th className="p-2">Rate / Unit</th>
+                          <th className="p-2 text-right">Total (₹)</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#243B2D]">
+                        {req.items.map((item) => (
+                          <tr key={item.id}>
+                            <td className="p-2 font-bold text-white">{item.name}</td>
+                            <td className="p-2">{item.qty} {item.unit}</td>
+                            <td className="p-2 font-mono">₹{item.ratePerUnit}/{item.unit}</td>
+                            <td className="p-2 text-right font-bold text-amber-300">₹{item.totalCost}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {req.adminRemarks && (
+                    <div className="text-xs text-slate-400 bg-[#18271E] p-2.5 rounded-xl border border-[#243B2D]">
+                      Note: <span className="text-emerald-300 font-semibold">{req.adminRemarks}</span>
+                    </div>
+                  )}
+
+                  {req.status === 'pending' && (
+                    <div className="flex justify-end gap-2 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => handleFundAction(req.id, 'approved')}
+                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl shadow-lg transition cursor-pointer"
+                      >
+                        ✅ Approve & Release Funds
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleFundAction(req.id, 'rejected')}
+                        className="px-3.5 py-2 bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 font-bold text-xs rounded-xl border border-rose-500/40 transition cursor-pointer"
+                      >
+                        ❌ Decline Request
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: FINANCIALS & ANALYTICS */}
       {activeMainTab === 'analytics' && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
             <div className="bg-[#15231B] border border-amber-500/30 p-6 rounded-3xl">
-              <span className="text-xs font-bold text-slate-400 uppercase">Total Verified GMV</span>
-              <div className="text-3xl font-black text-amber-400 mt-2">₹{totalRevenue.toLocaleString()}</div>
-              <p className="text-[11px] text-emerald-300/60 mt-1">Across all confirmed bookings</p>
+              <span className="text-xs font-bold text-slate-400 uppercase">Gross Verified Sales</span>
+              <div className="text-3xl font-black text-amber-400 mt-2">
+                ₹{orders.filter((o) => o.status !== 'rejected').reduce((s, o) => s + o.amount, 0).toLocaleString()}
+              </div>
+              <p className="text-[11px] text-emerald-300/60 mt-1">Confirmed customer payments</p>
+            </div>
+
+            <div className="bg-[#15231B] border border-rose-500/30 p-6 rounded-3xl">
+              <span className="text-xs font-bold text-slate-400 uppercase">Total Mandi Expenses</span>
+              <div className="text-3xl font-black text-rose-400 mt-2">
+                ₹{fundRequests.filter((f) => f.status === 'approved').reduce((s, f) => s + f.totalBudget, 0).toLocaleString()}
+              </div>
+              <p className="text-[11px] text-slate-400 mt-1">Released raw material budget</p>
             </div>
 
             <div className="bg-[#15231B] border border-emerald-500/30 p-6 rounded-3xl">
-              <span className="text-xs font-bold text-slate-400 uppercase">Active Subscriptions</span>
-              <div className="text-3xl font-black text-emerald-400 mt-2">{activeSubs.length}</div>
-              <p className="text-[11px] text-emerald-300/60 mt-1">30-day recurring customers</p>
+              <span className="text-xs font-bold text-slate-400 uppercase">Estimated Net Margin</span>
+              <div className="text-3xl font-black text-emerald-400 mt-2">
+                ₹{(
+                  orders.filter((o) => o.status !== 'rejected').reduce((s, o) => s + o.amount, 0) -
+                  fundRequests.filter((f) => f.status === 'approved').reduce((s, f) => s + f.totalBudget, 0)
+                ).toLocaleString()}
+              </div>
+              <p className="text-[11px] text-emerald-300/60 mt-1">Sales minus raw material costs</p>
             </div>
 
             <div className="bg-[#15231B] border border-[#243B2D] p-6 rounded-3xl">
-              <span className="text-xs font-bold text-slate-400 uppercase">Greater Noida Deliveries</span>
-              <div className="text-3xl font-black text-white mt-2">{grNoidaOrders.length}</div>
-              <p className="text-[11px] text-emerald-300/60 mt-1">⚡ 30-min express zone</p>
-            </div>
-
-            <div className="bg-[#15231B] border border-[#243B2D] p-6 rounded-3xl">
-              <span className="text-xs font-bold text-slate-400 uppercase">Noida Extended Orders</span>
-              <div className="text-3xl font-black text-white mt-2">{noidaOrders.length}</div>
-              <p className="text-[11px] text-emerald-300/60 mt-1">🚚 45-min delivery route</p>
+              <span className="text-xs font-bold text-slate-400 uppercase">Total Thalis Cooked</span>
+              <div className="text-3xl font-black text-white mt-2">
+                {orders.filter((o) => o.status !== 'rejected').length}
+              </div>
+              <p className="text-[11px] text-slate-400 mt-1">Active customer volume</p>
             </div>
           </div>
         </div>
       )}
 
-      {/* TAB 3: ACTIVE SUBSCRIBERS DIRECTORY */}
+      {/* TAB 4: ACTIVE SUBSCRIBERS */}
       {activeMainTab === 'subscribers' && (
         <div className="bg-[#15231B] border border-[#243B2D] rounded-3xl p-6">
-          <h3 className="text-lg font-black text-amber-300 mb-4 flex items-center gap-2">
-            👥 Monthly Meal Plan Subscribers Registry
-          </h3>
-
-          {activeSubs.length === 0 ? (
-            <p className="text-xs text-slate-400 py-8 text-center">No active monthly subscribers yet.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-300">
-                <thead className="bg-[#0F1A13] text-amber-400 font-bold uppercase text-[10px] border-b border-[#243B2D]">
-                  <tr>
-                    <th className="p-3">Customer</th>
-                    <th className="p-3">Plan</th>
-                    <th className="p-3">Slot</th>
-                    <th className="p-3">Gate Address</th>
-                    <th className="p-3">Paid Amount</th>
-                    <th className="p-3">Status</th>
+          <h3 className="text-lg font-black text-amber-300 mb-4">👥 Active Monthly Subscribers Registry</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs text-slate-300">
+              <thead className="bg-[#0F1A13] text-amber-400 uppercase text-[10px] border-b border-[#243B2D]">
+                <tr>
+                  <th className="p-3">Customer</th>
+                  <th className="p-3">Plan</th>
+                  <th className="p-3">Slot</th>
+                  <th className="p-3">Address</th>
+                  <th className="p-3">Paid (₹)</th>
+                  <th className="p-3">Order Time</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#243B2D]">
+                {orders.filter((o) => o.planType === 'Monthly' && o.status !== 'rejected').map((sub) => (
+                  <tr key={sub.id} className="hover:bg-[#18271E]">
+                    <td className="p-3 font-bold text-white">
+                      {sub.customerName}
+                      <div className="text-[11px] font-mono text-emerald-300">{sub.phone}</div>
+                    </td>
+                    <td className="p-3 text-amber-300 font-semibold">{sub.mealPlan}</td>
+                    <td className="p-3">{sub.slot}</td>
+                    <td className="p-3 truncate max-w-xs">{sub.address}</td>
+                    <td className="p-3 font-bold text-white">₹{sub.amount}</td>
+                    <td className="p-3 font-mono text-slate-400">{sub.formattedTimestamp}</td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-[#243B2D]">
-                  {activeSubs.map((sub) => (
-                    <tr key={sub.id} className="hover:bg-[#18271E] transition">
-                      <td className="p-3 font-bold text-white">
-                        {sub.customerName}
-                        <div className="text-[11px] font-mono text-emerald-300/80">{sub.phone}</div>
-                      </td>
-                      <td className="p-3 text-amber-300 font-semibold">{sub.mealPlan}</td>
-                      <td className="p-3">{sub.slot}</td>
-                      <td className="p-3 text-slate-300 max-w-xs truncate">{sub.address}</td>
-                      <td className="p-3 font-bold text-white">₹{sub.amount}</td>
-                      <td className="p-3">
-                        <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 rounded-full font-bold text-[10px]">
-                          {sub.status.toUpperCase()}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
-      {/* TAB 4: DELIVERY GATES & DISPATCH BOARD */}
+      {/* TAB 5: DELIVERY FLEET */}
       {activeMainTab === 'delivery' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div className="bg-[#15231B] border border-[#243B2D] p-6 rounded-3xl space-y-3">
-            <h3 className="text-base font-black text-amber-300 flex items-center gap-2">
-              🏢 Greater Noida Delivery Hubs (30 Mins)
-            </h3>
+            <h3 className="text-base font-black text-amber-300">🏢 Greater Noida Express Hubs (30 Mins)</h3>
             <ul className="text-xs text-slate-300 space-y-2">
               <li className="flex justify-between p-2.5 bg-[#0F1A13] rounded-xl">
                 <span>Galgotias University (Gate 1 & Gate 2)</span>
-                <span className="font-bold text-amber-400">⚡ Active</span>
+                <span className="font-bold text-amber-400">⚡ Live Delivery Active</span>
               </li>
               <li className="flex justify-between p-2.5 bg-[#0F1A13] rounded-xl">
                 <span>Sharda University Campus & Gate 3</span>
-                <span className="font-bold text-amber-400">⚡ Active</span>
+                <span className="font-bold text-amber-400">⚡ Live Delivery Active</span>
               </li>
               <li className="flex justify-between p-2.5 bg-[#0F1A13] rounded-xl">
                 <span>Bennett University & Knowledge Park Hostels</span>
-                <span className="font-bold text-amber-400">⚡ Active</span>
-              </li>
-              <li className="flex justify-between p-2.5 bg-[#0F1A13] rounded-xl">
-                <span>Pari Chowk & Alpha/Beta Residential Sectors</span>
-                <span className="font-bold text-amber-400">⚡ Active</span>
+                <span className="font-bold text-amber-400">⚡ Live Delivery Active</span>
               </li>
             </ul>
           </div>
 
           <div className="bg-[#15231B] border border-[#243B2D] p-6 rounded-3xl space-y-3">
-            <h3 className="text-base font-black text-amber-300 flex items-center gap-2">
-              🌆 Noida Extended Hubs (45 Mins)
-            </h3>
+            <h3 className="text-base font-black text-amber-300">🌆 Noida Extended Route (45 Mins)</h3>
             <ul className="text-xs text-slate-300 space-y-2">
               <li className="flex justify-between p-2.5 bg-[#0F1A13] rounded-xl">
                 <span>Noida Expressway (Sector 128, 137, 142)</span>
-                <span className="font-bold text-emerald-400">🚚 Route Scheduled</span>
+                <span className="font-bold text-emerald-400">🚚 Daily Route Active (+₹25 Share)</span>
               </li>
               <li className="flex justify-between p-2.5 bg-[#0F1A13] rounded-xl">
                 <span>Noida Central (Sector 50, 62, 76, 78)</span>
-                <span className="font-bold text-emerald-400">🚚 Route Scheduled</span>
+                <span className="font-bold text-emerald-400">🚚 Daily Route Active (+₹25 Share)</span>
               </li>
             </ul>
-          </div>
-        </div>
-      )}
-
-      {/* TAB 5: QUICK SETTINGS & SUPER ADMIN SHORTCUT */}
-      {activeMainTab === 'quickSettings' && (
-        <div className="bg-[#15231B] border border-[#243B2D] rounded-3xl p-6 sm:p-8 space-y-6">
-          <h3 className="text-base font-black text-amber-300 flex items-center gap-2">
-            ⚙️ Quick Configuration & Master Links
-          </h3>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="p-4 bg-[#0F1A13] rounded-2xl border border-[#243B2D] space-y-2">
-              <div className="text-xs font-bold text-white">Full CMS & Dynamic Pricing</div>
-              <p className="text-[11px] text-slate-400">
-                Change UPI QR, FSSAI, GST, WhatsApp Business number and meal prices.
-              </p>
-              <a
-                href="#superadmin"
-                className="inline-block px-4 py-2 bg-gradient-to-r from-[#D97706] to-[#F59E0B] text-slate-950 font-black text-xs rounded-xl mt-2"
-              >
-                Open Super Admin Panel ➔
-              </a>
-            </div>
-
-            <div className="p-4 bg-[#0F1A13] rounded-2xl border border-[#243B2D] space-y-2">
-              <div className="text-xs font-bold text-white">Live Kitchen Display</div>
-              <p className="text-[11px] text-slate-400">
-                Chef panel to prepare lunch & dinner items per shift.
-              </p>
-              <a
-                href="#chef"
-                className="inline-block px-4 py-2 bg-[#18271E] hover:bg-[#22382B] text-emerald-300 font-bold text-xs rounded-xl border border-emerald-500/30 mt-2"
-              >
-                Open Kitchen Display ➔
-              </a>
-            </div>
           </div>
         </div>
       )}
@@ -528,7 +631,7 @@ export const AdminPanel: React.FC = () => {
             </button>
             <h3 className="text-sm font-bold text-white mb-3">📸 Payment Screenshot Preview</h3>
             <div className="max-h-[75vh] overflow-auto rounded-xl border border-[#243B2D]">
-              <img src={previewImage} alt="Payment Slip" className="w-full object-contain mx-auto" />
+              <img src={previewImage} alt="Full Slip" className="w-full object-contain mx-auto" />
             </div>
           </div>
         </div>
