@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
-import { getSiteConfig, SiteConfig } from '../../utils/siteConfigStore';
+import { getSiteConfig, SiteConfig, DynamicDish } from '../../utils/siteConfigStore';
 import { createOrder, OrderItem, CityLocation } from '../../utils/orderStore';
 
 export const InstantOrderModal: React.FC = () => {
@@ -12,14 +12,15 @@ export const InstantOrderModal: React.FC = () => {
   const [phone, setPhone] = useState('');
   const [city, setCity] = useState<CityLocation>('Greater Noida');
   
-  // Specific Location & Address Fields
+  // 3-Tier Location
   const [areaLocation, setAreaLocation] = useState('');
   const [addressDetails, setAddressDetails] = useState('');
   const [mapLocationUrl, setMapLocationUrl] = useState('');
   const [isLocating, setIsLocating] = useState(false);
 
-  // Meal Selection
-  const [selectedMeal, setSelectedMeal] = useState<'mini' | 'standard' | 'egg' | 'chicken'>('standard');
+  // Category Filter & Selected Dynamic Dish
+  const [categoryFilter, setCategoryFilter] = useState<string>('All');
+  const [selectedDishId, setSelectedDishId] = useState<string>('');
   const [slot, setSlot] = useState<'Lunch' | 'Dinner'>('Lunch');
   const [quantity, setQuantity] = useState(1);
   const [utrNumber, setUtrNumber] = useState('');
@@ -31,15 +32,22 @@ export const InstantOrderModal: React.FC = () => {
   const [submittedOrder, setSubmittedOrder] = useState<OrderItem | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
 
+  const syncConfig = () => {
+    const current = getSiteConfig();
+    setConfig(current);
+    if (!selectedDishId && current.dishes && current.dishes.length > 0) {
+      setSelectedDishId(current.dishes[0].id);
+    }
+  };
+
   useEffect(() => {
-    const handleUpdate = () => setConfig(getSiteConfig());
-    window.addEventListener('bmb_config_updated', handleUpdate);
-    return () => window.removeEventListener('bmb_config_updated', handleUpdate);
+    syncConfig();
+    window.addEventListener('bmb_config_updated', syncConfig);
+    return () => window.removeEventListener('bmb_config_updated', syncConfig);
   }, []);
 
   if (!isInstantOrderOpen) return null;
 
-  // 100% Reliable Reset and Close
   const resetAndClose = (e?: React.MouseEvent) => {
     if (e) {
       e.preventDefault();
@@ -60,7 +68,6 @@ export const InstantOrderModal: React.FC = () => {
     closeInstantOrder();
   };
 
-  // GPS Auto-Detect Handler
   const handleDetectGPSLocation = () => {
     if (!navigator.geolocation) {
       alert('Geolocation is not supported by your device browser.');
@@ -70,8 +77,7 @@ export const InstantOrderModal: React.FC = () => {
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const { latitude, longitude } = pos.coords;
-        const gMapsUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
-        setMapLocationUrl(gMapsUrl);
+        setMapLocationUrl(`https://www.google.com/maps?q=${latitude},${longitude}`);
 
         try {
           const res = await fetch(
@@ -82,56 +88,35 @@ export const InstantOrderModal: React.FC = () => {
             setAreaLocation(data.address?.suburb || data.address?.neighbourhood || data.address?.road || 'Current GPS Area');
           }
         } catch {
-          // If geocoding fails, fallback gracefully
+          // fallback
         } finally {
           setIsLocating(false);
         }
       },
       (err) => {
         setIsLocating(false);
-        alert('Please allow Location Permission in your browser settings to fetch live GPS pin.');
+        alert('Please allow Location Permission in your browser to fetch GPS pin.');
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
   };
 
-  // Pricing Helpers
-  const getMealDetails = () => {
-    switch (selectedMeal) {
-      case 'mini':
-        return {
-          title: config.singleThalis?.miniVeg?.name || 'Mini Daily Veg Thali',
-          price: config.singleThalis?.miniVeg?.price || 89,
-          items: config.singleThalis?.miniVeg?.items || '3 Rotis + Dal Tadka + Sabzi + Salad',
-        };
-      case 'standard':
-        return {
-          title: config.singleThalis?.standardVeg?.name || 'Standard North Indian Thali',
-          price: config.singleThalis?.standardVeg?.price || 110,
-          items: config.singleThalis?.standardVeg?.items || '4 Butter Rotis + Special Sabzi + Dal Fry + Rice + Salad',
-        };
-      case 'egg':
-        return {
-          title: config.singleThalis?.eggSpecial?.name || 'Double Egg Curry Thali',
-          price: config.singleThalis?.eggSpecial?.price || 130,
-          items: config.singleThalis?.eggSpecial?.items || '2-Egg Curry + 4 Rotis + Steamed Rice + Dal + Salad',
-        };
-      case 'chicken':
-        return {
-          title: config.singleThalis?.chickenSpecial?.name || 'Chicken Special Thali',
-          price: config.singleThalis?.chickenSpecial?.price || 160,
-          items: config.singleThalis?.chickenSpecial?.items || 'Chicken Curry (3 Pcs) + 4 Rotis + Rice + Raita',
-        };
-    }
+  // Find currently selected dynamic dish
+  const availableDishes = (config.dishes || []).filter((d) => d.isAvailable);
+  const filteredDishes = availableDishes.filter((d) => (categoryFilter === 'All' ? true : d.category === categoryFilter));
+  const activeDish = availableDishes.find((d) => d.id === selectedDishId) || availableDishes[0] || {
+    id: 'default',
+    name: 'Standard North Indian Thali',
+    price: 110,
+    items: '4 Butter Rotis + Sabzi + Dal Fry + Jeera Rice + Salad',
+    category: 'Veg',
   };
 
-  const currentMeal = getMealDetails();
-  const mealSubtotal = currentMeal.price * quantity;
+  const mealSubtotal = activeDish.price * quantity;
   const deliveryCharge = city === 'Noida' ? 25 : 0;
   const estimatedTime = city === 'Noida' ? '45 Mins' : '30 Mins';
   const totalAmount = mealSubtotal + deliveryCharge;
 
-  // File Upload Handler
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -167,7 +152,7 @@ export const InstantOrderModal: React.FC = () => {
       phone,
       city,
       address: compiledAddress,
-      mealPlan: `${currentMeal.title} (x${quantity})`,
+      mealPlan: `${activeDish.name} (x${quantity})`,
       planType: 'Daily',
       slot,
       mealAmount: mealSubtotal,
@@ -193,7 +178,7 @@ export const InstantOrderModal: React.FC = () => {
         className="relative w-full max-w-xl bg-[#15231B] border border-[#2B4534] rounded-3xl p-6 sm:p-8 text-[#FAF7F2] shadow-2xl my-8"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Working & Highlighted Modal Close Button */}
+        {/* Working Modal Close Button */}
         <button
           type="button"
           onClick={resetAndClose}
@@ -212,7 +197,7 @@ export const InstantOrderModal: React.FC = () => {
               </span>
               <h2 className="text-2xl font-black text-white mt-2">Order Fresh Homestyle Meal</h2>
               <p className="text-emerald-300/60 text-xs mt-1">
-                Delivered in 30 Mins (Greater Noida) • 45 Mins (Noida)
+                30 Mins (Greater Noida) • 45 Mins (Noida)
               </p>
             </div>
 
@@ -231,7 +216,7 @@ export const InstantOrderModal: React.FC = () => {
               {/* City Selection */}
               <div>
                 <label className="block text-xs font-bold text-amber-300 uppercase mb-2">
-                  📍 1. Select City / Zone
+                  📍 1. Select Delivery Location
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   <button
@@ -257,72 +242,61 @@ export const InstantOrderModal: React.FC = () => {
                         : 'bg-[#0F1A13] border-[#243B2D] text-slate-300'
                     }`}
                   >
-                    <div className="text-xs font-bold text-amber-300">🌆 Noida (Distance)</div>
+                    <div className="text-xs font-bold text-amber-300">🌆 Noida (Extended)</div>
                     <div className="text-[11px] text-white font-bold mt-0.5">🚚 45 Mins Delivery</div>
                     <div className="text-[10px] text-amber-400 font-semibold">+₹25 Distance Share (50% Off)</div>
                   </button>
                 </div>
               </div>
 
-              {/* Meal Selection */}
+              {/* Dynamic Dish Selection (Loaded Live from Super Admin) */}
               <div>
-                <label className="block text-xs font-bold text-amber-300 uppercase mb-2">2. Choose Meal</label>
-                <div className="grid grid-cols-2 gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedMeal('mini')}
-                    className={`p-3 rounded-2xl border text-left transition ${
-                      selectedMeal === 'mini'
-                        ? 'bg-amber-500/20 border-amber-500 text-white font-bold'
-                        : 'bg-[#0F1A13] border-[#243B2D] text-slate-300'
-                    }`}
-                  >
-                    <div className="text-xs font-bold">🌱 Mini Veg</div>
-                    <div className="text-amber-400 font-black text-sm">₹{config.singleThalis?.miniVeg?.price || 89}</div>
-                  </button>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-bold text-amber-300 uppercase">2. Select Dish or Combo</label>
+                  {/* Category Filter Pills */}
+                  <div className="flex gap-1 overflow-x-auto text-[10px]">
+                    {['All', 'Veg', 'Egg', 'Non-Veg', 'Rice Combo'].map((cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setCategoryFilter(cat)}
+                        className={`px-2 py-0.5 rounded-full font-bold transition ${
+                          categoryFilter === cat ? 'bg-amber-500 text-slate-950' : 'bg-[#0F1A13] text-slate-400'
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setSelectedMeal('standard')}
-                    className={`p-3 rounded-2xl border text-left transition ${
-                      selectedMeal === 'standard'
-                        ? 'bg-amber-500/20 border-amber-500 text-white font-bold'
-                        : 'bg-[#0F1A13] border-[#243B2D] text-slate-300'
-                    }`}
-                  >
-                    <div className="text-xs font-bold">🌟 Standard Veg</div>
-                    <div className="text-amber-400 font-black text-sm">₹{config.singleThalis?.standardVeg?.price || 110}</div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setSelectedMeal('egg')}
-                    className={`p-3 rounded-2xl border text-left transition ${
-                      selectedMeal === 'egg'
-                        ? 'bg-amber-500/20 border-amber-500 text-white font-bold'
-                        : 'bg-[#0F1A13] border-[#243B2D] text-slate-300'
-                    }`}
-                  >
-                    <div className="text-xs font-bold">🍳 Double Egg</div>
-                    <div className="text-amber-400 font-black text-sm">₹{config.singleThalis?.eggSpecial?.price || 130}</div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setSelectedMeal('chicken')}
-                    className={`p-3 rounded-2xl border text-left transition ${
-                      selectedMeal === 'chicken'
-                        ? 'bg-amber-500/20 border-amber-500 text-white font-bold'
-                        : 'bg-[#0F1A13] border-[#243B2D] text-slate-300'
-                    }`}
-                  >
-                    <div className="text-xs font-bold">🍗 Chicken Special</div>
-                    <div className="text-amber-400 font-black text-sm">₹{config.singleThalis?.chickenSpecial?.price || 160}</div>
-                  </button>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-56 overflow-y-auto pr-1 scrollbar-none">
+                  {filteredDishes.map((dish) => (
+                    <button
+                      key={dish.id}
+                      type="button"
+                      onClick={() => setSelectedDishId(dish.id)}
+                      className={`p-3 rounded-2xl border text-left transition flex flex-col justify-between ${
+                        selectedDishId === dish.id || (!selectedDishId && dish.id === activeDish.id)
+                          ? 'bg-amber-500/20 border-amber-500 text-white font-bold shadow-md'
+                          : 'bg-[#0F1A13] border-[#243B2D] text-slate-300 hover:border-[#375a43]'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-1 w-full">
+                        <div className="text-xs font-bold truncate">{dish.name}</div>
+                        {dish.badge && (
+                          <span className="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded font-bold whitespace-nowrap">
+                            {dish.badge}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-amber-400 font-black text-sm mt-1">₹{dish.price}</div>
+                    </button>
+                  ))}
                 </div>
 
                 <div className="mt-2.5 p-2.5 bg-[#0F1A13] border border-[#243B2D] rounded-xl text-[11px] text-emerald-200/80">
-                  <span className="font-bold text-white">Includes:</span> {currentMeal.items}
+                  <span className="font-bold text-white">Includes:</span> {activeDish.items}
                 </div>
               </div>
 
@@ -340,7 +314,7 @@ export const InstantOrderModal: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-emerald-200 mb-1">Thali Qty</label>
+                  <label className="block text-xs font-bold text-emerald-200 mb-1">Quantity (Thalis)</label>
                   <input
                     type="number"
                     min="1"
@@ -371,7 +345,7 @@ export const InstantOrderModal: React.FC = () => {
                   <input
                     type="tel"
                     required
-                    placeholder="10-digit Phone"
+                    placeholder="10-digit Phone Number"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3.5 py-2.5 text-sm text-white font-mono outline-none"
@@ -396,7 +370,6 @@ export const InstantOrderModal: React.FC = () => {
                   </button>
                 </div>
 
-                {/* Field 1: Area / Gate / Landmark */}
                 <div>
                   <label className="block text-[11px] font-bold text-slate-300 mb-1">
                     University / Gate / Landmark / Sector *
@@ -404,14 +377,13 @@ export const InstantOrderModal: React.FC = () => {
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Galgotias University Gate 1 / Sharda Gate 3 / Pari Chowk"
+                    placeholder="e.g. Galgotias Gate 1 / Sharda Gate 3 / Pari Chowk"
                     value={areaLocation}
                     onChange={(e) => setAreaLocation(e.target.value)}
                     className="w-full bg-[#18271E] border border-[#2B4534] rounded-xl px-3 py-2 text-xs text-white outline-none"
                   />
                 </div>
 
-                {/* Field 2: Room / Flat / Floor Details */}
                 <div>
                   <label className="block text-[11px] font-bold text-slate-300 mb-1">
                     Room No. / Hostel Name / Flat & Floor Details *
@@ -426,7 +398,6 @@ export const InstantOrderModal: React.FC = () => {
                   />
                 </div>
 
-                {/* Field 3: Live GPS Status Badge */}
                 {mapLocationUrl && (
                   <div className="p-2 bg-emerald-500/10 border border-emerald-500/30 rounded-xl flex items-center justify-between text-[11px] text-emerald-300">
                     <span className="flex items-center gap-1 font-semibold">
@@ -606,7 +577,7 @@ export const InstantOrderModal: React.FC = () => {
                 <span className="text-white font-bold">{submittedOrder.city} ({submittedOrder.estimatedTime})</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Meal Plan:</span>
+                <span className="text-slate-400">Meal Ordered:</span>
                 <span className="text-white font-bold">{submittedOrder.mealPlan}</span>
               </div>
               <div className="flex justify-between">
