@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useApp } from '../../context/AppContext';
-import { getSiteConfig, SiteConfig, DynamicDish } from '../../utils/siteConfigStore';
+import { getSiteConfig, SiteConfig, formatIndianWhatsAppNumber, VEG_THALI_IMG, EGG_THALI_IMG, CHICKEN_THALI_IMG } from '../../utils/siteConfigStore';
 import { createOrder, OrderItem, CityLocation } from '../../utils/orderStore';
 
 export const InstantOrderModal: React.FC = () => {
@@ -16,8 +16,8 @@ export const InstantOrderModal: React.FC = () => {
   const [mapLocationUrl, setMapLocationUrl] = useState('');
   const [isLocating, setIsLocating] = useState(false);
 
-  // 3 Core Thalis Selection
-  const [selectedDishId, setSelectedDishId] = useState<string>('dish-veg');
+  // 3 Core Thalis Selection with Exact Photos
+  const [selectedMealType, setSelectedMealType] = useState<'veg' | 'egg' | 'chicken'>('veg');
   const [slot, setSlot] = useState<'Lunch' | 'Dinner'>('Lunch');
   const [quantity, setQuantity] = useState(1);
   const [utrNumber, setUtrNumber] = useState('');
@@ -30,17 +30,12 @@ export const InstantOrderModal: React.FC = () => {
   const [submittedOrder, setSubmittedOrder] = useState<OrderItem | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const syncConfig = () => {
-    setConfig(getSiteConfig());
-  };
-
   useEffect(() => {
-    syncConfig();
-    window.addEventListener('bmb_config_updated', syncConfig);
-    return () => window.removeEventListener('bmb_config_updated', syncConfig);
+    const handleUpdate = () => setConfig(getSiteConfig());
+    window.addEventListener('bmb_config_updated', handleUpdate);
+    return () => window.removeEventListener('bmb_config_updated', handleUpdate);
   }, []);
 
-  // 100% Reliable Reset and Close
   const resetAndClose = useCallback(() => {
     setStep('form');
     setCustomerName('');
@@ -57,7 +52,7 @@ export const InstantOrderModal: React.FC = () => {
     closeInstantOrder();
   }, [closeInstantOrder]);
 
-  // Global ESC Keyboard Key Listener
+  // Global ESC Key Listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' || e.keyCode === 27) {
@@ -66,7 +61,7 @@ export const InstantOrderModal: React.FC = () => {
     };
     if (isInstantOrderOpen) {
       window.addEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'hidden'; // Lock background scroll on laptop
+      document.body.style.overflow = 'hidden';
     }
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
@@ -76,7 +71,40 @@ export const InstantOrderModal: React.FC = () => {
 
   if (!isInstantOrderOpen) return null;
 
-  // Ultra-Fast Canvas Client-Side Compression (Zero Lag, Sub-second Upload)
+  // Exact 3 Core Thalis Details (Using Same Homepage Photos)
+  const getMealInfo = () => {
+    switch (selectedMealType) {
+      case 'veg':
+        return {
+          title: 'Pure Veg Thali',
+          price: 80,
+          items: '4 Soft Tawa Rotis + Seasonal Dal + Green Sabzi + Steamed Rice + Salad & Pickle',
+          imageUrl: VEG_THALI_IMG,
+        };
+      case 'egg':
+        return {
+          title: 'Egg Delight Thali',
+          price: 100,
+          items: '2-Egg Rich Homestyle Curry + 4 Rotis + Steamed Rice + Yellow Dal + Fresh Salad',
+          imageUrl: EGG_THALI_IMG,
+        };
+      case 'chicken':
+        return {
+          title: 'Chicken Curry Thali',
+          price: 120,
+          items: 'Desi Chicken Curry (3 Pcs) + 4 Rotis + Steamed Rice + Salad & Raita',
+          imageUrl: CHICKEN_THALI_IMG,
+        };
+    }
+  };
+
+  const activeDish = getMealInfo();
+  const mealSubtotal = activeDish.price * quantity;
+  const deliveryCharge = city === 'Noida' ? 25 : 0;
+  const estimatedTime = city === 'Noida' ? '45 Mins' : '30 Mins';
+  const totalAmount = mealSubtotal + deliveryCharge;
+
+  // Ultra-Fast Canvas Client-Side Compression
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -110,7 +138,6 @@ export const InstantOrderModal: React.FC = () => {
           const ctx = canvas.getContext('2d');
           ctx?.drawImage(img, 0, 0, width, height);
 
-          // Compress to lightweight JPEG
           const compressedBase64 = canvas.toDataURL('image/jpeg', 0.65);
           setPaymentSlip(compressedBase64);
           setIsCompressing(false);
@@ -142,20 +169,6 @@ export const InstantOrderModal: React.FC = () => {
     );
   };
 
-  // Only 3 Core Thalis
-  const availableDishes: DynamicDish[] = config.dishes && config.dishes.length > 0 ? config.dishes : [
-    { id: 'dish-veg', name: 'Standard North Indian Veg Thali', category: 'Veg', price: 110, items: '4 Butter Rotis + Sabzi + Dal + Rice + Salad', isAvailable: true },
-    { id: 'dish-egg', name: 'Double Egg Curry Special Thali', category: 'Egg', price: 130, items: '2-Egg Curry + 4 Rotis + Rice + Dal + Salad', isAvailable: true },
-    { id: 'dish-nonveg', name: 'Homestyle Chicken Curry Thali', category: 'Non-Veg', price: 160, items: 'Chicken Curry (3 Pcs) + 4 Rotis + Rice + Salad', isAvailable: true },
-  ];
-
-  const activeDish = availableDishes.find((d) => d.id === selectedDishId) || availableDishes[0];
-
-  const mealSubtotal = activeDish.price * quantity;
-  const deliveryCharge = city === 'Noida' ? 25 : 0;
-  const estimatedTime = city === 'Noida' ? '45 Mins' : '30 Mins';
-  const totalAmount = mealSubtotal + deliveryCharge;
-
   const handleSubmitOrder = (e: React.FormEvent) => {
     e.preventDefault();
     if (!utrNumber.trim() || utrNumber.trim().length < 6) {
@@ -172,7 +185,7 @@ export const InstantOrderModal: React.FC = () => {
       phone,
       city,
       address: compiledAddress,
-      mealPlan: `${activeDish.name} (x${quantity})`,
+      mealPlan: `${activeDish.title} (x${quantity})`,
       planType: 'Daily',
       slot,
       mealAmount: mealSubtotal,
@@ -187,7 +200,7 @@ export const InstantOrderModal: React.FC = () => {
     setStep('success');
   };
 
-  const cleanWa = config.whatsappNumber.replace(/[^0-9]/g, '');
+  const cleanWa = formatIndianWhatsAppNumber(config.whatsappNumber);
 
   return (
     <div
@@ -198,7 +211,7 @@ export const InstantOrderModal: React.FC = () => {
         className="relative w-full max-w-xl bg-[#15231B] border-2 border-[#2B4534] rounded-3xl p-5 sm:p-8 text-[#FAF7F2] shadow-2xl my-auto select-text"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Working High-Visibility ✕ Close Button for Laptops & Mobile */}
+        {/* Working High-Visibility ✕ Close Button */}
         <button
           type="button"
           onClick={resetAndClose}
@@ -208,7 +221,7 @@ export const InstantOrderModal: React.FC = () => {
           ✕
         </button>
 
-        {/* STEP 1: ORDER DETAILS FORM */}
+        {/* STEP 1: ORDER DETAILS */}
         {step === 'form' && (
           <div>
             <div className="text-center mb-5 pr-8">
@@ -243,7 +256,7 @@ export const InstantOrderModal: React.FC = () => {
                     className={`p-3 rounded-2xl border text-left transition cursor-pointer ${
                       city === 'Greater Noida'
                         ? 'bg-emerald-500/20 border-emerald-400 text-white font-bold shadow-md'
-                        : 'bg-[#0F1A13] border-[#243B2D] text-slate-300 hover:border-[#375a43]'
+                        : 'bg-[#0F1A13] border-[#243B2D] text-slate-300'
                     }`}
                   >
                     <div className="text-xs font-bold text-emerald-300">🏢 Greater Noida</div>
@@ -257,7 +270,7 @@ export const InstantOrderModal: React.FC = () => {
                     className={`p-3 rounded-2xl border text-left transition cursor-pointer ${
                       city === 'Noida'
                         ? 'bg-amber-500/20 border-amber-400 text-white font-bold shadow-md'
-                        : 'bg-[#0F1A13] border-[#243B2D] text-slate-300 hover:border-[#375a43]'
+                        : 'bg-[#0F1A13] border-[#243B2D] text-slate-300'
                     }`}
                   >
                     <div className="text-xs font-bold text-amber-300">🌆 Noida (Extended)</div>
@@ -267,34 +280,60 @@ export const InstantOrderModal: React.FC = () => {
                 </div>
               </div>
 
-              {/* ONLY 3 CORE THALIS */}
+              {/* EXACT 3 THALIS WITH IDENTICAL HOMEPAGE PHOTOS */}
               <div>
                 <label className="block text-xs font-bold text-amber-300 uppercase mb-1.5">
-                  🍱 2. Choose Your Thali
+                  🍱 2. Choose Your Thali (Exact Photos)
                 </label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                  {availableDishes.map((dish) => (
-                    <button
-                      key={dish.id}
-                      type="button"
-                      onClick={() => setSelectedDishId(dish.id)}
-                      className={`p-3 rounded-2xl border text-left transition flex flex-col justify-between cursor-pointer ${
-                        selectedDishId === dish.id
-                          ? 'bg-amber-500/20 border-amber-400 text-white font-bold shadow-lg ring-1 ring-amber-400'
-                          : 'bg-[#0F1A13] border-[#243B2D] text-slate-300 hover:border-[#375a43]'
-                      }`}
-                    >
-                      <div>
-                        <div className="text-[10px] text-amber-300 uppercase font-black">{dish.category}</div>
-                        <div className="text-xs font-bold text-white mt-0.5 line-clamp-1">{dish.name}</div>
-                      </div>
-                      <div className="text-amber-400 font-black text-base mt-2">₹{dish.price}</div>
-                    </button>
-                  ))}
+                <div className="grid grid-cols-3 gap-2.5">
+                  {/* Pure Veg */}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedMealType('veg')}
+                    className={`p-2.5 rounded-2xl border text-left transition flex flex-col justify-between cursor-pointer ${
+                      selectedMealType === 'veg'
+                        ? 'bg-emerald-500/20 border-emerald-400 text-white font-bold shadow-lg ring-1 ring-emerald-400'
+                        : 'bg-[#0F1A13] border-[#243B2D] text-slate-300'
+                    }`}
+                  >
+                    <img src={VEG_THALI_IMG} alt="Veg Thali" className="w-full h-16 object-cover rounded-xl mb-1.5" />
+                    <div className="text-[11px] font-bold text-emerald-300 truncate">Pure Veg</div>
+                    <div className="text-amber-400 font-black text-sm mt-0.5">₹80</div>
+                  </button>
+
+                  {/* Egg Delight */}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedMealType('egg')}
+                    className={`p-2.5 rounded-2xl border text-left transition flex flex-col justify-between cursor-pointer ${
+                      selectedMealType === 'egg'
+                        ? 'bg-amber-500/20 border-amber-400 text-white font-bold shadow-lg ring-1 ring-amber-400'
+                        : 'bg-[#0F1A13] border-[#243B2D] text-slate-300'
+                    }`}
+                  >
+                    <img src={EGG_THALI_IMG} alt="Egg Delight" className="w-full h-16 object-cover rounded-xl mb-1.5" />
+                    <div className="text-[11px] font-bold text-amber-300 truncate">Egg Delight</div>
+                    <div className="text-amber-400 font-black text-sm mt-0.5">₹100</div>
+                  </button>
+
+                  {/* Chicken Curry */}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedMealType('chicken')}
+                    className={`p-2.5 rounded-2xl border text-left transition flex flex-col justify-between cursor-pointer ${
+                      selectedMealType === 'chicken'
+                        ? 'bg-rose-500/20 border-rose-400 text-white font-bold shadow-lg ring-1 ring-rose-400'
+                        : 'bg-[#0F1A13] border-[#243B2D] text-slate-300'
+                    }`}
+                  >
+                    <img src={CHICKEN_THALI_IMG} alt="Chicken Curry" className="w-full h-16 object-cover rounded-xl mb-1.5" />
+                    <div className="text-[11px] font-bold text-rose-300 truncate">Chicken Curry</div>
+                    <div className="text-amber-400 font-black text-sm mt-0.5">₹120</div>
+                  </button>
                 </div>
 
                 <div className="mt-2 p-2.5 bg-[#0F1A13] border border-[#243B2D] rounded-xl text-[11px] text-emerald-200/80">
-                  <span className="font-bold text-white">Menu Contents:</span> {activeDish.items}
+                  <span className="font-bold text-white">Includes:</span> {activeDish.items}
                 </div>
               </div>
 
@@ -324,7 +363,7 @@ export const InstantOrderModal: React.FC = () => {
                 </div>
               </div>
 
-              {/* Customer Contact Info */}
+              {/* Customer Info */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-emerald-200 mb-1">Full Name *</label>
@@ -343,7 +382,7 @@ export const InstantOrderModal: React.FC = () => {
                   <input
                     type="tel"
                     required
-                    placeholder="10-digit Phone"
+                    placeholder="10-digit Phone Number"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     className="w-full bg-[#0F1A13] border border-[#243B2D] rounded-xl px-3 py-2 text-sm text-white font-mono outline-none focus:border-amber-500"
@@ -351,8 +390,8 @@ export const InstantOrderModal: React.FC = () => {
                 </div>
               </div>
 
-              {/* Location & Address Box */}
-              <div className="space-y-2.5 bg-[#0F1A13] p-3 rounded-2xl border border-[#243B2D]">
+              {/* Location Box */}
+              <div className="space-y-2 bg-[#0F1A13] p-3 rounded-2xl border border-[#243B2D]">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-amber-300">📍 Delivery Gate Details</span>
                   <button
@@ -404,12 +443,12 @@ export const InstantOrderModal: React.FC = () => {
           </div>
         )}
 
-        {/* STEP 2: UPI PAYMENT & ULTRA-FAST SLIP UPLOAD */}
+        {/* STEP 2: UPI PAYMENT */}
         {step === 'payment' && (
           <div>
             <div className="text-center mb-4 pr-8">
               <span className="px-3 py-1 bg-amber-500/20 border border-amber-500/30 text-amber-300 text-xs font-black rounded-full uppercase">
-                💳 Step 2: UPI Scan & Verification
+                💳 Step 2: UPI Verification
               </span>
               <h2 className="text-xl font-black text-white mt-1">Pay ₹{totalAmount} via UPI</h2>
               <p className="text-emerald-300/60 text-xs">Scan the QR code and enter 12-digit UTR below</p>
@@ -429,7 +468,7 @@ export const InstantOrderModal: React.FC = () => {
                 }}
               />
               <div className="text-center sm:text-left space-y-1 flex-1">
-                <div className="text-xs text-slate-400">Official Merchant UPI ID:</div>
+                <div className="text-xs text-slate-400">Merchant UPI ID:</div>
                 <div className="text-sm font-mono font-bold text-amber-300 bg-[#18271E] px-3 py-1.5 rounded-lg border border-[#243B2D] flex items-center justify-between">
                   <span>{config.upiId}</span>
                   <button
@@ -443,9 +482,6 @@ export const InstantOrderModal: React.FC = () => {
                     Copy
                   </button>
                 </div>
-                <p className="text-[11px] text-emerald-300/70">
-                  Google Pay, PhonePe, Paytm ya kisi bhi app se pay karein.
-                </p>
               </div>
             </div>
 
@@ -458,14 +494,13 @@ export const InstantOrderModal: React.FC = () => {
                   type="text"
                   required
                   maxLength={22}
-                  placeholder="e.g. 423871982341 (Payment receipt se dekh kar dalein)"
+                  placeholder="e.g. 423871982341 (From GooglePay/PhonePe receipt)"
                   value={utrNumber}
                   onChange={(e) => setUtrNumber(e.target.value)}
                   className="w-full bg-[#0F1A13] border-2 border-amber-500/50 focus:border-amber-400 rounded-xl px-4 py-2.5 text-sm text-white font-mono font-bold outline-none"
                 />
               </div>
 
-              {/* Fast Compressed Screenshot Upload */}
               <div>
                 <label className="block text-xs font-bold text-emerald-200 mb-1">
                   📸 Payment Screenshot (Optional - Instant Upload)
@@ -526,7 +561,7 @@ export const InstantOrderModal: React.FC = () => {
           </div>
         )}
 
-        {/* STEP 3: SUCCESS & CONFIRMATION */}
+        {/* STEP 3: SUCCESS */}
         {step === 'success' && submittedOrder && (
           <div className="text-center py-3 space-y-4">
             <div className="w-14 h-14 bg-amber-500/20 border-2 border-amber-500/40 text-amber-400 rounded-full flex items-center justify-center mx-auto text-2xl animate-pulse">
@@ -542,17 +577,13 @@ export const InstantOrderModal: React.FC = () => {
 
             <div className="bg-[#0F1A13] border border-[#243B2D] rounded-2xl p-4 text-left text-xs space-y-1.5">
               <div className="flex justify-between">
-                <span className="text-slate-400">Current Status:</span>
+                <span className="text-slate-400">Status:</span>
                 <span className="px-2 py-0.5 bg-yellow-500/20 text-yellow-300 font-bold rounded-full text-[10px]">
                   🟡 Pending Admin Verification
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Delivery Zone:</span>
-                <span className="text-white font-bold">{submittedOrder.city} ({submittedOrder.estimatedTime})</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Meal Ordered:</span>
+                <span className="text-slate-400">Meal:</span>
                 <span className="text-white font-bold">{submittedOrder.mealPlan}</span>
               </div>
               <div className="flex justify-between">
