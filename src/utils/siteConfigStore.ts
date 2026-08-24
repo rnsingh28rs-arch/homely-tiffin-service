@@ -19,7 +19,7 @@ export interface SiteConfig {
   email: string;
   kitchenAddress: string;
 
-  // Banking Suite
+  // Banking
   bankAccountName: string;
   bankAccountNumber: string;
   bankIfscCode: string;
@@ -35,14 +35,22 @@ export interface SiteConfig {
   heroBannerImage: string;
   thaliImage: string;
 
-  // STRICTLY 3 DISHES ONLY (SAME PHOTOS AS HOMEPAGE)
+  // Strict 3 Dishes
   dishes: DynamicDish[];
 
-  // STRICTLY 3 MONTHLY SUBSCRIPTIONS
+  // Backward-compatibility for older modal components
+  singleThalis: {
+    miniVeg: { name: string; price: number; items: string };
+    standardVeg: { name: string; price: number; items: string };
+    eggSpecial: { name: string; price: number; items: string };
+    chickenSpecial: { name: string; price: number; items: string };
+  };
+
+  // 3 Core Monthly Subscriptions
   packages: {
-    veg: { dailyPrice: number; monthlyPrice: number; description: string; itemsIncluded: string; imageUrl: string };
-    egg: { dailyPrice: number; monthlyPrice: number; description: string; itemsIncluded: string; imageUrl: string };
-    nonVeg: { dailyPrice: number; monthlyPrice: number; description: string; itemsIncluded: string; imageUrl: string };
+    veg: { dailyPrice: number; monthlyPrice: number; description: string; itemsIncluded: string; imageUrl?: string };
+    egg: { dailyPrice: number; monthlyPrice: number; description: string; itemsIncluded: string; imageUrl?: string };
+    nonVeg: { dailyPrice: number; monthlyPrice: number; description: string; itemsIncluded: string; imageUrl?: string };
   };
 
   deliverySlots: {
@@ -57,7 +65,6 @@ export interface SiteConfig {
   kitchenPin: string;
 }
 
-// EXACT 3 HOMEPAGE PHOTOS (LOCKED ACROSS ENTIRE PLATFORM)
 export const VEG_THALI_IMG = "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=800&auto=format&fit=crop&q=80";
 export const EGG_THALI_IMG = "https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?w=800&auto=format&fit=crop&q=80";
 export const CHICKEN_THALI_IMG = "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=800&auto=format&fit=crop&q=80";
@@ -86,7 +93,6 @@ export const DEFAULT_CONFIG: SiteConfig = {
   heroBannerImage: "https://images.unsplash.com/photo-1613292443284-8d10ef9383fe?w=1920&auto=format&fit=crop&q=80",
   thaliImage: VEG_THALI_IMG,
 
-  // STRICT 3 DISHES (₹80, ₹100, ₹120) WITH IDENTICAL PHOTOS
   dishes: [
     {
       id: "dish-veg",
@@ -120,7 +126,13 @@ export const DEFAULT_CONFIG: SiteConfig = {
     },
   ],
 
-  // STRICT 3 PACKAGES WITH IDENTICAL PHOTOS
+  singleThalis: {
+    miniVeg: { name: "Pure Veg Thali", price: 80, items: "4 Rotis + Dal + Sabzi + Rice + Salad" },
+    standardVeg: { name: "Pure Veg Thali", price: 80, items: "4 Rotis + Dal + Sabzi + Rice + Salad" },
+    eggSpecial: { name: "Egg Delight Thali", price: 100, items: "2-Egg Curry + 4 Rotis + Rice + Dal + Salad" },
+    chickenSpecial: { name: "Chicken Curry Thali", price: 120, items: "Chicken Curry + 4 Rotis + Rice + Salad" },
+  },
+
   packages: {
     veg: {
       dailyPrice: 80,
@@ -157,14 +169,12 @@ export const DEFAULT_CONFIG: SiteConfig = {
   kitchenPin: "1234",
 };
 
-// Permanent Storage Key
-const MASTER_CONFIG_KEY = "bmb_locked_master_config_v200";
+const MASTER_CONFIG_KEY = "bmb_locked_master_config_v500";
 
-// Helper: Ensure 100% Accurate Indian WhatsApp Format (+91)
 export const formatIndianWhatsAppNumber = (rawPhone: string): string => {
   const digits = rawPhone.replace(/[^0-9]/g, '');
   if (digits.length === 10) {
-    return '91' + digits; // 9004848984 -> 919004848984
+    return '91' + digits;
   }
   if (digits.length === 11 && digits.startsWith('0')) {
     return '91' + digits.substring(1);
