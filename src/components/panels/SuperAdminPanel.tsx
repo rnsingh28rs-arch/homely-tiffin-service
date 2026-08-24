@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { getSiteConfig, saveSiteConfig, SiteConfig, DynamicDish, formatIndianWhatsAppNumber } from '../../utils/siteConfigStore';
+import { getSiteConfig, saveSiteConfig, SiteConfig, DynamicDish } from '../../utils/siteConfigStore';
 import { getStoredOrders, OrderItem } from '../../utils/orderStore';
 import { getStoredFundRequests, FundRequest } from '../../utils/inventoryStore';
 import { getStoredSalaryLedger, SalaryPayment } from '../../utils/staffStore';
@@ -8,7 +8,7 @@ interface SuperAdminPanelProps {
   onClose?: () => void;
 }
 
-type TabType = 'dishesManager' | 'pnlDashboard' | 'subscriptions' | 'banking' | 'brand' | 'banners' | 'operations' | 'security';
+type TabType = 'dishesManager' | 'pnlDashboard' | 'subscriptions' | 'banking' | 'brand' | 'security';
 
 export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => {
   const [config, setConfig] = useState<SiteConfig>(getSiteConfig());
@@ -23,10 +23,7 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
   const [saveToast, setSaveToast] = useState<string>('');
   const [showPins, setShowPins] = useState<boolean>(false);
 
-  // Edit Dish Modal State
   const [editingDish, setEditingDish] = useState<DynamicDish | null>(null);
-
-  // Add New Dish Modal State
   const [showNewDishModal, setShowNewDishModal] = useState(false);
   const [newDishName, setNewDishName] = useState('');
   const [newDishCat, setNewDishCat] = useState<DynamicDish['category']>('Veg');
@@ -70,7 +67,6 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
     setTimeout(() => setSaveToast(''), 4000);
   };
 
-  // Full Edit Dish Submit
   const handleUpdateDishSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingDish) return;
@@ -84,7 +80,6 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
     setTimeout(() => setSaveToast(''), 4000);
   };
 
-  // Create New Dish
   const handleCreateNewDish = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newDishName.trim() || !newDishItems.trim()) return;
@@ -114,7 +109,6 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
     setTimeout(() => setSaveToast(''), 4000);
   };
 
-  // Delete Dish
   const handleDeleteDish = (dishId: string) => {
     if (window.confirm('Are you sure you want to remove this dish?')) {
       const updated = config.dishes.filter((d) => d.id !== dishId);
@@ -126,7 +120,6 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
     }
   };
 
-  // Toggle Live Availability
   const handleToggleDishAvailability = (dishId: string) => {
     const updated = config.dishes.map((d) => (d.id === dishId ? { ...d, isAvailable: !d.isAvailable } : d));
     const updatedConfig = { ...config, dishes: updated };
@@ -190,7 +183,6 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
 
   return (
     <div className="min-h-screen bg-[#0E1712] text-[#FAF7F2] flex flex-col font-sans">
-      {/* Top Header */}
       <header className="bg-[#15231B] border-b border-[#243B2D] sticky top-0 z-50 shadow-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -204,12 +196,6 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
           </div>
 
           <div className="flex items-center gap-3">
-            <a
-              href="#admin"
-              className="px-3.5 py-2 bg-[#18271E] hover:bg-[#243B2D] text-amber-300 border border-amber-500/30 text-xs font-bold rounded-xl transition flex items-center gap-1.5"
-            >
-              <span>💼</span> Admin Desk
-            </a>
             <button
               onClick={() => setIsAuthenticated(false)}
               className="px-3.5 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-semibold rounded-xl transition cursor-pointer"
@@ -227,7 +213,6 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
           </div>
         </div>
 
-        {/* Tab Navigation */}
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 flex items-center border-t border-[#1F3326]">
           <button
             type="button"
@@ -240,12 +225,10 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
           <div ref={tabScrollRef} className="flex-1 flex gap-2 overflow-x-auto py-2.5 scrollbar-none scroll-smooth">
             {[
               { id: 'dishesManager', label: `🍛 Dynamic Menu (${config.dishes?.length || 0})`, icon: '🍱' },
-              { id: 'brand', label: '🏢 WhatsApp Phone & Legal', icon: '🏛️' },
+              { id: 'brand', label: '🏢 WhatsApp Phone & Contact', icon: '🏛️' },
               { id: 'subscriptions', label: '📅 Monthly Subscriptions', icon: '📋' },
               { id: 'banking', label: '🏦 Bank Account & UPI QR', icon: '💳' },
               { id: 'pnlDashboard', label: '📊 Financial P&L & Profit', icon: '💰' },
-              { id: 'banners', label: '🎨 Banners', icon: '🖼️' },
-              { id: 'operations', label: '🚚 Delivery Slots', icon: '⏰' },
               { id: 'security', label: '🔒 Security PINs', icon: '🔑' },
             ].map((tab) => (
               <button
@@ -273,7 +256,6 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
         </div>
       </header>
 
-      {/* Main Area */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex-1 w-full">
         {saveToast && (
           <div className="mb-6 p-4 bg-emerald-500/20 border border-emerald-500/40 text-emerald-200 rounded-2xl text-xs font-bold flex items-center gap-3">
@@ -282,7 +264,6 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
           </div>
         )}
 
-        {/* TAB 1: DYNAMIC MENU & COMBOS ENGINE WITH EDIT MODAL */}
         {activeTab === 'dishesManager' && (
           <div className="space-y-6">
             <div className="bg-[#15231B] border border-[#243B2D] rounded-3xl p-6">
@@ -292,7 +273,7 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                     🍱 Dynamic Menu & Combos Engine
                   </h3>
                   <p className="text-xs text-emerald-300/70 mt-0.5">
-                    Any dish added, edited or deleted here updates immediately on the Live Customer Instant Order Form!
+                    Any dish edited or added here updates immediately on the live customer ordering system.
                   </p>
                 </div>
 
@@ -305,7 +286,6 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                 </button>
               </div>
 
-              {/* Cards Grid */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {config.dishes?.map((dish) => (
                   <div
@@ -313,7 +293,6 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                     className="bg-[#0F1A13] border-2 border-[#243B2D] hover:border-amber-500/40 rounded-3xl p-5 flex flex-col justify-between space-y-4 shadow-xl transition"
                   >
                     <div>
-                      {/* Image Thumbnail */}
                       <div className="relative h-44 w-full rounded-2xl overflow-hidden mb-3 bg-[#18271E]">
                         <img
                           src={dish.imageUrl}
@@ -336,7 +315,7 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
 
                     <div className="pt-3 border-t border-[#1F3326] space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-xl font-black text-amber-400">₹{dish.price}</span>
+                        <span className="text-xl font-black text-amber-400 font-mono">₹{dish.price}</span>
                         
                         <div className="flex items-center gap-1.5">
                           <button
@@ -373,7 +352,6 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
               </div>
             </div>
 
-            {/* MODAL: EDIT DISH DETAILS (PHOTO URL, NAME, PRICE, ITEMS) */}
             {editingDish && (
               <div className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4">
                 <div className="relative max-w-lg w-full bg-[#15231B] border-2 border-amber-500/50 rounded-3xl p-6 text-white space-y-4 shadow-2xl">
@@ -441,7 +419,7 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-bold text-slate-300 mb-1">Items Included / Menu Description *</label>
+                      <label className="block text-[11px] font-bold text-slate-300 mb-1">Items Included *</label>
                       <textarea
                         rows={2}
                         required
@@ -452,7 +430,7 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-bold text-slate-300 mb-1">Badge (e.g. Best Seller ⭐)</label>
+                      <label className="block text-[11px] font-bold text-slate-300 mb-1">Badge (e.g. Pure Homestyle 🌱)</label>
                       <input
                         type="text"
                         value={editingDish.badge || ''}
@@ -481,12 +459,11 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
               </div>
             )}
 
-            {/* MODAL: ADD NEW DISH */}
             {showNewDishModal && (
               <div className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4">
                 <div className="relative max-w-md w-full bg-[#15231B] border border-[#2B4534] rounded-3xl p-6 text-white space-y-4 shadow-2xl">
                   <div className="flex justify-between items-center border-b border-[#243B2D] pb-3">
-                    <h3 className="text-base font-black text-amber-300">➕ Add New Dish / Combo</h3>
+                    <h3 className="text-base font-black text-amber-300">➕ Add New Dish</h3>
                     <button
                       type="button"
                       onClick={() => setShowNewDishModal(false)}
@@ -581,11 +558,10 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
           </div>
         )}
 
-        {/* TAB 2: BRAND & WHATSAPP PHONE */}
         {activeTab === 'brand' && (
           <form onSubmit={handleSave} className="space-y-6">
             <div className="bg-[#15231B] border border-[#243B2D] rounded-3xl p-6 sm:p-8 space-y-6">
-              <h3 className="text-base font-black text-amber-300">🏛️ WhatsApp Phone Number & Legal</h3>
+              <h3 className="text-base font-black text-amber-300">🏛️ WhatsApp Phone Number & Legal Entity</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div className="bg-[#0F1A13] p-4 rounded-2xl border-2 border-emerald-500/50">
                   <label className="block text-xs font-black text-emerald-300 uppercase mb-1">
@@ -624,7 +600,6 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
           </form>
         )}
 
-        {/* TAB 3: BANKING */}
         {activeTab === 'banking' && (
           <form onSubmit={handleSave} className="space-y-6">
             <div className="bg-[#15231B] border border-[#243B2D] rounded-3xl p-6 sm:p-8 space-y-6">
@@ -671,7 +646,6 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
           </form>
         )}
 
-        {/* TAB 4: SUBSCRIPTIONS */}
         {activeTab === 'subscriptions' && (
           <form onSubmit={handleSave} className="space-y-6">
             <div className="bg-[#15231B] border border-[#243B2D] rounded-3xl p-6 sm:p-8 space-y-6">
@@ -735,32 +709,30 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({ onClose }) => 
           </form>
         )}
 
-        {/* TAB 5: P&L */}
         {activeTab === 'pnlDashboard' && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
               <div className="bg-[#15231B] border border-amber-500/40 p-6 rounded-3xl">
-                <span className="text-xs font-bold text-slate-400 uppercase">Gross Sales</span>
-                <div className="text-3xl font-black text-amber-400 mt-2">₹{grossGMV.toLocaleString()}</div>
+                <span className="text-xs font-bold text-slate-400 uppercase">Gross Sales (GMV)</span>
+                <div className="text-3xl font-black text-amber-400 mt-2 font-mono">₹{grossGMV.toLocaleString()}</div>
               </div>
               <div className="bg-[#15231B] border border-rose-500/40 p-6 rounded-3xl">
                 <span className="text-xs font-bold text-slate-400 uppercase">Total Expenses</span>
-                <div className="text-3xl font-black text-rose-400 mt-2">₹{totalExpenses.toLocaleString()}</div>
+                <div className="text-3xl font-black text-rose-400 mt-2 font-mono">₹{totalExpenses.toLocaleString()}</div>
               </div>
               <div className="bg-[#15231B] border border-emerald-500/40 p-6 rounded-3xl">
-                <span className="text-xs font-bold text-slate-400 uppercase">Net Profit</span>
-                <div className="text-3xl font-black text-emerald-400 mt-2">₹{netPureProfit.toLocaleString()}</div>
+                <span className="text-xs font-bold text-slate-400 uppercase">Net Pure Profit</span>
+                <div className="text-3xl font-black text-emerald-400 mt-2 font-mono">₹{netPureProfit.toLocaleString()}</div>
               </div>
             </div>
           </div>
         )}
 
-        {/* TAB 6: SECURITY */}
         {activeTab === 'security' && (
           <form onSubmit={handleSave} className="space-y-6">
             <div className="bg-[#15231B] border border-[#243B2D] rounded-3xl p-6 sm:p-8 space-y-6">
               <div className="flex justify-between items-center">
-                <h3 className="text-base font-black text-amber-300">🔒 Security PINs</h3>
+                <h3 className="text-base font-black text-amber-300">🔒 Security Access PINs</h3>
                 <button
                   type="button"
                   onClick={() => setShowPins(!showPins)}
