@@ -43,15 +43,15 @@ export const ChatBox: React.FC = () => {
       const initialMsg: Message = {
         id: 'msg-init',
         sender: 'bot',
-        text: `Namaste ji! 🙏 Main hoon **Chef Bitey** 👨‍🍳 Bring My Bite ka AI Kitchen Assistant!\n\nAaj kitchen me fresh aur hygienic khana ban raha hai. Main aapki kya madad kar sakta hoon?`,
+        text: `Namaste ji! 🙏 Main hoon **Chef Bitey** 👨‍🍳 Bring My Bite ka AI Kitchen Assistant!\n\nAaj kitchen me fresh khana prepare ho raha hai. Main aapki kya madad kar sakta hoon?`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         options: [
           { label: '🍛 Pure Veg Thali (₹80)', action: 'order_veg' },
           { label: '🍳 Egg Delight Thali (₹100)', action: 'order_egg' },
           { label: '🍗 Chicken Curry Thali (₹120)', action: 'order_chicken' },
-          { label: '🔍 Track My Order Status', action: 'track' },
-          { label: '📅 30-Day Monthly Subscriptions', action: 'subscriptions' },
-          { label: '💬 Talk on WhatsApp (+91)', action: 'whatsapp' },
+          { label: '🔍 Track Order Status', action: 'track' },
+          { label: '📅 30-Day Monthly Plans', action: 'subscriptions' },
+          { label: '💬 WhatsApp Support (+91)', action: 'whatsapp' },
         ],
       };
       setMessages([initialMsg]);
@@ -71,10 +71,10 @@ export const ChatBox: React.FC = () => {
 
       if (query.includes('menu') || query.includes('rate') || query.includes('khana') || query.includes('thali') || query.includes('veg') || query.includes('egg') || query.includes('chicken')) {
         const dishList = activeDishes.map((d) => `• **${d.name}**: ₹${d.price}\n  _${d.items}_`).join('\n\n');
-        botReplyText = `🍱 **Aaj Ka Freshly Cooked Menu:**\n\n${dishList}\n\n👉 Aap niche diye gaye button se direct plate book kar sakte hain!`;
+        botReplyText = `🍱 **Aaj Ka Menu:**\n\n${dishList}\n\n👉 Aap direct order book kar sakte hain!`;
         options = [
-          { label: '⚡ Book Instant Thali Now', action: 'open_instant_modal' },
-          { label: '📅 View Monthly Subscriptions', action: 'subscriptions' },
+          { label: '⚡ Book Instant Thali', action: 'open_instant_modal' },
+          { label: '📅 Monthly Subscriptions', action: 'subscriptions' },
         ];
       } else if (query.includes('track') || query.includes('status') || query.includes('bmb-')) {
         const allOrders = getStoredOrders();
@@ -90,7 +90,7 @@ export const ChatBox: React.FC = () => {
           matchedOrder = found;
           botReplyText = `✅ **Order Mil Gaya!**\n\n🆔 **Order ID:** ${found.id}\n🍱 **Meal:** ${found.mealPlan}\n📍 **Status:** ${
             found.status === 'pending'
-              ? '🟡 Verification Pending (Admin checking UTR)'
+              ? '🟡 Verification Pending'
               : found.status === 'approved'
               ? '🟢 Approved & Cooking 🍳'
               : found.status === 'out_for_delivery'
@@ -104,31 +104,31 @@ export const ChatBox: React.FC = () => {
             { label: '🍛 Order Another Meal', action: 'open_instant_modal' },
           ];
         } else {
-          botReplyText = `🔍 Apna 10-digit **Mobile Number** ya **Order ID (jaise BMB-123456)** yahan type karein, main turant status batata hoon.`;
+          botReplyText = `🔍 Apna 10-digit **Mobile Number** ya **Order ID (jaise BMB-123456)** type karein.`;
         }
-      } else if (query.includes('subscription') || query.includes('monthly') || query.includes('package') || query.includes('mahina')) {
-        botReplyText = `📅 **30-Day Monthly Tiffin Subscriptions:**\n\n🌱 **Pure Veg Plan:** ₹${config.packages?.veg?.monthlyPrice || 2400} / Month\n🍳 **Egg Special Plan:** ₹${config.packages?.egg?.monthlyPrice || 2999} / Month\n🍗 **Chicken Special Plan:** ₹${config.packages?.nonVeg?.monthlyPrice || 3599} / Month\n\nRoz lunch aur dinner aapke gate/hostel par deliver hota hai!`;
+      } else if (query.includes('subscription') || query.includes('monthly') || query.includes('mahina')) {
+        botReplyText = `📅 **30-Day Monthly Tiffin Subscriptions:**\n\n🌱 **Pure Veg Plan:** ₹${config.packages?.veg?.monthlyPrice || 2400} / Month\n🍳 **Egg Special Plan:** ₹${config.packages?.egg?.monthlyPrice || 2999} / Month\n🍗 **Chicken Special Plan:** ₹${config.packages?.nonVeg?.monthlyPrice || 3599} / Month`;
         options = [
           { label: '📝 Register Monthly Plan', action: 'open_reg_modal' },
           { label: '🍛 Order Daily Single Thali', action: 'open_instant_modal' },
         ];
       } else if (query.includes('delivery') || query.includes('time') || query.includes('noida')) {
-        botReplyText = `🚚 **Delivery Areas & Timings:**\n\n⚡ **Greater Noida:** 30 Mins Express (₹0 Free Delivery) across Galgotias Gate 1 & 2, Sharda Gate 3, Bennett & KP Hostels.\n\n🚚 **Noida:** 45 Mins Delivery (+₹25 Distance Share).\n\n🍱 **Lunch:** ${config.deliverySlots?.lunchTime || '12:30 PM - 02:00 PM'}\n🌙 **Dinner:** ${config.deliverySlots?.dinnerTime || '07:30 PM - 09:30 PM'}`;
+        botReplyText = `🚚 **Delivery Areas & Timings:**\n\n⚡ **Greater Noida:** 30 Mins (₹0 Free Delivery)\n🚚 **Noida:** 45 Mins (+₹25 Distance Share)\n\n🍱 **Lunch:** ${config.deliverySlots?.lunchTime || '12:30 PM - 02:00 PM'}\n🌙 **Dinner:** ${config.deliverySlots?.dinnerTime || '07:30 PM - 09:30 PM'}`;
         options = [
-          { label: '⚡ Order for Greater Noida (30 Mins)', action: 'open_instant_modal' },
-          { label: '💬 Contact Kitchen Team', action: 'whatsapp' },
+          { label: '⚡ Order Now', action: 'open_instant_modal' },
+          { label: '💬 Contact Team', action: 'whatsapp' },
         ];
       } else if (query.includes('whatsapp') || query.includes('phone') || query.includes('call')) {
-        botReplyText = `📞 **Official Support Desk:**\n\nCalling: **${config.phone}**\nWhatsApp: **+${formatIndianWhatsAppNumber(config.whatsappNumber)}**\n\nKitchen Address: ${config.kitchenAddress}`;
+        botReplyText = `📞 **Official Support Desk:**\n\nCalling: **${config.phone}**\nWhatsApp: **+${formatIndianWhatsAppNumber(config.whatsappNumber)}**`;
         options = [
-          { label: '💬 Open WhatsApp Business Chat', action: 'direct_whatsapp' },
+          { label: '💬 Open WhatsApp Chat', action: 'direct_whatsapp' },
         ];
-      } else if (query === 'open_instant_modal') {
+      } else if (query === 'open_instant_modal' || query.startsWith('order_')) {
         openInstantOrder();
-        botReplyText = 'Thali booking form screen par open kar diya gaya hai! 🍱';
+        botReplyText = 'Thali booking form open kar diya gaya hai! 🍱';
       } else if (query === 'open_reg_modal') {
         openRegistration();
-        botReplyText = 'Monthly registration form screen par open kar diya gaya hai! 📅';
+        botReplyText = 'Monthly registration form open kar diya gaya hai! 📅';
       } else {
         botReplyText = `Main aapka sawaal samajh gaya ji! Kya aap **Menu dekhna** chahte hain ya **Order Track** karna chahte hain?`;
         options = [
@@ -214,7 +214,6 @@ export const ChatBox: React.FC = () => {
       }}
       className="font-sans"
     >
-      {/* Floating Animated Chef Trigger */}
       {!isOpen && (
         <div className="relative group">
           {isWaving && (
@@ -252,11 +251,8 @@ export const ChatBox: React.FC = () => {
         </div>
       )}
 
-      {/* Main Chef Chat Drawer Window */}
       {isOpen && (
         <div className="w-[92vw] sm:w-[380px] h-[520px] max-h-[85vh] bg-[#111A14] border-2 border-[#2B4534] rounded-3xl shadow-2xl flex flex-col overflow-hidden text-[#FAF7F2] animate-in fade-in slide-in-from-bottom-5 duration-300">
-          
-          {/* Header */}
           <div className="bg-[#15231B] p-3.5 px-4 border-b border-[#243B2D] flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="relative w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-600 to-amber-400 flex items-center justify-center text-2xl shadow-md">
@@ -294,7 +290,6 @@ export const ChatBox: React.FC = () => {
             </div>
           </div>
 
-          {/* Messages Area */}
           <div className="flex-1 p-4 overflow-y-auto space-y-3 text-xs scrollbar-none">
             {messages.map((msg) => (
               <div
@@ -354,7 +349,6 @@ export const ChatBox: React.FC = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Bar */}
           <form onSubmit={handleSend} className="p-3 bg-[#15231B] border-t border-[#243B2D] flex items-center gap-2">
             <input
               type="text"
