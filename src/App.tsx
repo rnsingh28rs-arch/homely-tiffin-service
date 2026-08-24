@@ -45,7 +45,6 @@ const MainLayout: React.FC = () => {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, [setActiveRole]);
 
-  // Super Admin Control Center View
   if (activeRole === 'superadmin' || currentHash === '#superadmin') {
     return (
       <SuperAdminPanel
@@ -57,7 +56,6 @@ const MainLayout: React.FC = () => {
     );
   }
 
-  // Staff Panels (Admin, Manager, Chef)
   if (activeRole !== 'customer') {
     return (
       <div className="min-h-screen bg-[#0E1712] text-[#FAF7F2] flex flex-col font-sans">
@@ -72,7 +70,6 @@ const MainLayout: React.FC = () => {
     );
   }
 
-  // Public Customer Website
   return (
     <div className="min-h-screen bg-[#FAF7F2] text-[#1A261E] flex flex-col font-sans selection:bg-amber-400 selection:text-slate-950">
       <LiveActiveOrderBar />
