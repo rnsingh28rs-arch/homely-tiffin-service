@@ -3,8 +3,8 @@ import { AppProvider, useApp } from './context/AppContext';
 import { TopBar } from './components/common/TopBar';
 import { TodayMenuTicker } from './components/common/TodayMenuTicker';
 import { LiveActiveOrderBar } from './components/customer/LiveActiveOrderBar';
-import { ChefChatBot } from './components/common/ChefChatBot';
-import { Hero } from './components/customer/Hero';
+import { ChatBox } from './components/common/ChatBox';
+import { HeroBanner } from './components/customer/HeroBanner';
 import { LowerFeaturesGrid } from './components/customer/LowerFeaturesGrid';
 import { PackagesSection } from './components/customer/PackagesSection';
 import { Footer } from './components/common/Footer';
@@ -45,7 +45,7 @@ const MainLayout: React.FC = () => {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, [setActiveRole]);
 
-  // Full Screen Super Admin View
+  // Super Admin Control Center View
   if (activeRole === 'superadmin' || currentHash === '#superadmin') {
     return (
       <SuperAdminPanel
@@ -57,7 +57,7 @@ const MainLayout: React.FC = () => {
     );
   }
 
-  // Staff Internal Panel Views (Admin, Manager, Chef)
+  // Staff Panels (Admin, Manager, Chef)
   if (activeRole !== 'customer') {
     return (
       <div className="min-h-screen bg-[#0E1712] text-[#FAF7F2] flex flex-col font-sans">
@@ -72,38 +72,23 @@ const MainLayout: React.FC = () => {
     );
   }
 
-  // Public Customer Facing Website Layout
+  // Public Customer Website
   return (
     <div className="min-h-screen bg-[#FAF7F2] text-[#1A261E] flex flex-col font-sans selection:bg-amber-400 selection:text-slate-950">
-      {/* 1. Live Active Order Floating Banner (Auto Detected) */}
       <LiveActiveOrderBar />
-
-      {/* 2. Top Header Bar */}
       <TopBar />
-
-      {/* 3. Running Menu & Rates Ticker */}
       <TodayMenuTicker />
-
-      {/* 4. Hero Showcase Section */}
       <main className="flex-1">
-        <Hero />
-        {/* 5. Dynamic Dishes & Rice Combos Grid */}
+        <HeroBanner />
         <LowerFeaturesGrid />
-        {/* 6. 30-Day Monthly Packages Section */}
         <PackagesSection />
       </main>
-
-      {/* 7. Public Footer */}
       <Footer />
-
-      {/* 8. Customer Booking & Tracking Modals */}
       <InstantOrderModal />
       <RegistrationModal />
       <RenewalModal />
       <TrackOrderModal isOpen={isTrackOpen} onClose={() => setIsTrackOpen(false)} />
-
-      {/* 9. Animated Chef AI Chatbot (Chef Bitey) */}
-      <ChefChatBot />
+      <ChatBox />
     </div>
   );
 };
