@@ -15,7 +15,6 @@ export const HeroBanner: React.FC = () => {
 
   return (
     <section className="relative overflow-hidden pt-6 pb-12 px-4 sm:px-6 max-w-7xl mx-auto">
-      {/* Category Navigation Pills */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6 pb-2 border-b border-[#243B2D]/10">
         <span className="text-xs font-black uppercase text-amber-700 tracking-wider">
           {config.heroBadge || '🔥 #1 Student & Office Tiffin in Greater Noida'}
@@ -58,10 +57,9 @@ export const HeroBanner: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Hero Split Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
-        {/* Left Column: Headline & Active Monthly Package Showcase */}
+        {/* Left Column */}
         <div className="lg:col-span-7 space-y-6">
           <div>
             <span className="px-3 py-1 bg-amber-500/20 text-amber-800 border border-amber-500/40 rounded-full text-[11px] font-black uppercase">
@@ -77,7 +75,6 @@ export const HeroBanner: React.FC = () => {
             </p>
           </div>
 
-          {/* Active Featured Card (Synced with Exact ₹80, ₹100, ₹120 Rates) */}
           <div className="bg-[#15231B] text-[#FAF7F2] rounded-3xl p-6 sm:p-7 border border-[#2B4534] shadow-2xl space-y-5">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[#243B2D] pb-4">
               <div>
@@ -101,7 +98,6 @@ export const HeroBanner: React.FC = () => {
               </div>
             </div>
 
-            {/* Menu Items Details */}
             <div className="text-xs text-slate-300 bg-[#0F1A13] p-4 rounded-2xl border border-[#243B2D] space-y-2">
               <div className="font-bold text-white flex items-center gap-1.5">
                 <span>🍱</span> Daily Box Includes:
@@ -113,7 +109,6 @@ export const HeroBanner: React.FC = () => {
               </p>
             </div>
 
-            {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <button
                 type="button"
@@ -136,10 +131,8 @@ export const HeroBanner: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Column: Live 3-Thali Order Quick Deck */}
+        {/* Right Column: 3 Core Instant Dishes */}
         <div className="lg:col-span-5 space-y-4">
-          
-          {/* Live Preview Box with Exact HD Photo */}
           <div className="bg-[#15231B] border-2 border-[#2B4534] rounded-3xl p-5 text-white shadow-xl">
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-black text-amber-300 uppercase flex items-center gap-1.5">
@@ -164,7 +157,6 @@ export const HeroBanner: React.FC = () => {
               />
             </div>
 
-            {/* 3 Instant One-Time Dishes with Exact Rates (₹80, ₹100, ₹120) */}
             <div className="space-y-2.5 pt-2">
               <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                 ⚡ Instant One-Time Thalis (30 Mins Gate Drop):
@@ -235,7 +227,6 @@ export const HeroBanner: React.FC = () => {
 
             </div>
           </div>
-
         </div>
 
       </div>
