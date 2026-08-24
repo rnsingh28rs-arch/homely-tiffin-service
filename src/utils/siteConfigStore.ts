@@ -19,7 +19,6 @@ export interface SiteConfig {
   email: string;
   kitchenAddress: string;
 
-  // Banking
   bankAccountName: string;
   bankAccountNumber: string;
   bankIfscCode: string;
@@ -28,25 +27,14 @@ export interface SiteConfig {
   upiId: string;
   upiQrImage: string;
 
-  // Media
   heroBadge: string;
   heroHeadline: string;
   heroTagline: string;
   heroBannerImage: string;
   thaliImage: string;
 
-  // Strict 3 Dishes
   dishes: DynamicDish[];
 
-  // Backward-compatibility for older modal components
-  singleThalis: {
-    miniVeg: { name: string; price: number; items: string };
-    standardVeg: { name: string; price: number; items: string };
-    eggSpecial: { name: string; price: number; items: string };
-    chickenSpecial: { name: string; price: number; items: string };
-  };
-
-  // 3 Core Monthly Subscriptions
   packages: {
     veg: { dailyPrice: number; monthlyPrice: number; description: string; itemsIncluded: string; imageUrl?: string };
     egg: { dailyPrice: number; monthlyPrice: number; description: string; itemsIncluded: string; imageUrl?: string };
@@ -65,9 +53,10 @@ export interface SiteConfig {
   kitchenPin: string;
 }
 
-export const VEG_THALI_IMG = "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=800&auto=format&fit=crop&q=80";
-export const EGG_THALI_IMG = "https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?w=800&auto=format&fit=crop&q=80";
-export const CHICKEN_THALI_IMG = "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=800&auto=format&fit=crop&q=80";
+// EXACT BANNER IMAGES
+export const BANNER_VEG_IMG = "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=800&auto=format&fit=crop&q=80";
+export const BANNER_EGG_IMG = "https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?w=800&auto=format&fit=crop&q=80";
+export const BANNER_CHICKEN_IMG = "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=800&auto=format&fit=crop&q=80";
 
 export const DEFAULT_CONFIG: SiteConfig = {
   brandName: "Bring My Bite",
@@ -91,47 +80,41 @@ export const DEFAULT_CONFIG: SiteConfig = {
   heroHeadline: "Homely Food. Delivered with Care.",
   heroTagline: "Premium hygienic tiffin service for Students & Working Professionals.",
   heroBannerImage: "https://images.unsplash.com/photo-1613292443284-8d10ef9383fe?w=1920&auto=format&fit=crop&q=80",
-  thaliImage: VEG_THALI_IMG,
+  thaliImage: BANNER_VEG_IMG,
 
+  // EXACT 3 DISHES ONLY (NO EXTRA DUMMY ITEMS)
   dishes: [
     {
       id: "dish-veg",
-      name: "Pure Veg Thali",
+      name: "Standard North Indian Veg Thali",
       category: "Veg",
       price: 80,
-      items: "4 Soft Tawa Rotis + Seasonal Dal + Green Sabzi + Steamed Rice + Salad & Pickle",
-      imageUrl: VEG_THALI_IMG,
+      items: "4 Butter Rotis + Special Sabzi + Dal Fry + Jeera Rice + Salad & Pickle",
+      imageUrl: BANNER_VEG_IMG,
       badge: "Best Seller ⭐",
       isAvailable: true,
     },
     {
       id: "dish-egg",
-      name: "Egg Delight Thali",
+      name: "Double Egg Curry Special Thali",
       category: "Egg",
       price: 100,
-      items: "2-Egg Rich Homestyle Curry + 4 Rotis + Steamed Rice + Yellow Dal + Fresh Salad",
-      imageUrl: EGG_THALI_IMG,
+      items: "2-Egg Rich Curry + 4 Soft Rotis + Steamed Rice + Dal + Fresh Salad",
+      imageUrl: BANNER_EGG_IMG,
       badge: "High Protein 💪",
       isAvailable: true,
     },
     {
       id: "dish-nonveg",
-      name: "Chicken Curry Thali",
+      name: "Homestyle Chicken Curry Thali",
       category: "Non-Veg",
       price: 120,
-      items: "Desi Chicken Curry (3 Pcs) + 4 Rotis + Steamed Rice + Salad & Raita",
-      imageUrl: CHICKEN_THALI_IMG,
+      items: "Desi Style Chicken Curry (3 Pcs) + 4 Rotis + Steamed Rice + Raita & Salad",
+      imageUrl: BANNER_CHICKEN_IMG,
       badge: "Chef Special 🍗",
       isAvailable: true,
     },
   ],
-
-  singleThalis: {
-    miniVeg: { name: "Pure Veg Thali", price: 80, items: "4 Rotis + Dal + Sabzi + Rice + Salad" },
-    standardVeg: { name: "Pure Veg Thali", price: 80, items: "4 Rotis + Dal + Sabzi + Rice + Salad" },
-    eggSpecial: { name: "Egg Delight Thali", price: 100, items: "2-Egg Curry + 4 Rotis + Rice + Dal + Salad" },
-    chickenSpecial: { name: "Chicken Curry Thali", price: 120, items: "Chicken Curry + 4 Rotis + Rice + Salad" },
-  },
 
   packages: {
     veg: {
@@ -139,21 +122,21 @@ export const DEFAULT_CONFIG: SiteConfig = {
       monthlyPrice: 2400,
       description: "Shuddh Shakahari Ghar Ka Khana",
       itemsIncluded: "4 Butter Tawa Rotis + Dal Tadka + Seasonal Sabzi + Jeera Rice + Salad & Pickle",
-      imageUrl: VEG_THALI_IMG,
+      imageUrl: BANNER_VEG_IMG,
     },
     egg: {
       dailyPrice: 100,
       monthlyPrice: 2999,
       description: "High-Protein Double Egg Curry Combo",
       itemsIncluded: "2-Egg Rich Curry + 4 Soft Rotis + Steamed Rice + Dal + Fresh Salad",
-      imageUrl: EGG_THALI_IMG,
+      imageUrl: BANNER_EGG_IMG,
     },
     nonVeg: {
       dailyPrice: 120,
       monthlyPrice: 3599,
       description: "Desi Style Special Chicken Thali",
       itemsIncluded: "Homestyle Chicken Curry (3 Pcs) + 4 Rotis + Rice + Salad & Raita",
-      imageUrl: CHICKEN_THALI_IMG,
+      imageUrl: BANNER_CHICKEN_IMG,
     },
   },
 
@@ -169,27 +152,21 @@ export const DEFAULT_CONFIG: SiteConfig = {
   kitchenPin: "1234",
 };
 
-const MASTER_CONFIG_KEY = "bmb_locked_master_config_v500";
+const DYNAMIC_MENU_KEY = "bmb_clean_menu_store_v700";
 
 export const formatIndianWhatsAppNumber = (rawPhone: string): string => {
   const digits = rawPhone.replace(/[^0-9]/g, '');
-  if (digits.length === 10) {
-    return '91' + digits;
-  }
-  if (digits.length === 11 && digits.startsWith('0')) {
-    return '91' + digits.substring(1);
-  }
-  if (digits.length === 12 && digits.startsWith('91')) {
-    return digits;
-  }
+  if (digits.length === 10) return '91' + digits;
+  if (digits.length === 11 && digits.startsWith('0')) return '91' + digits.substring(1);
+  if (digits.length === 12 && digits.startsWith('91')) return digits;
   return digits.length > 0 ? digits : '919004848984';
 };
 
 export const getSiteConfig = (): SiteConfig => {
   try {
-    const saved = localStorage.getItem(MASTER_CONFIG_KEY);
+    const saved = localStorage.getItem(DYNAMIC_MENU_KEY);
     if (!saved) {
-      localStorage.setItem(MASTER_CONFIG_KEY, JSON.stringify(DEFAULT_CONFIG));
+      localStorage.setItem(DYNAMIC_MENU_KEY, JSON.stringify(DEFAULT_CONFIG));
       return DEFAULT_CONFIG;
     }
     const parsed = JSON.parse(saved);
@@ -203,6 +180,6 @@ export const getSiteConfig = (): SiteConfig => {
 };
 
 export const saveSiteConfig = (newConfig: SiteConfig): void => {
-  localStorage.setItem(MASTER_CONFIG_KEY, JSON.stringify(newConfig));
+  localStorage.setItem(DYNAMIC_MENU_KEY, JSON.stringify(newConfig));
   window.dispatchEvent(new Event("bmb_config_updated"));
 };
