@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getSiteConfig, SiteConfig } from '../../utils/siteConfigStore';
-import { useApp } from '../../context/AppContext';
 
 export const TodayMenuTicker: React.FC = () => {
-  const { openInstantOrder } = useApp();
   const [config, setConfig] = useState<SiteConfig>(getSiteConfig());
 
   useEffect(() => {
@@ -12,28 +10,33 @@ export const TodayMenuTicker: React.FC = () => {
     return () => window.removeEventListener('bmb_config_updated', handleUpdate);
   }, []);
 
-  const activeDishes = (config.dishes || []).filter((d) => d.isAvailable);
+  const activeDishes = config.dishes || [];
 
   return (
-    <div className="bg-[#FAF7F2] border-b border-[#243B2D]/10 py-2.5 px-4 overflow-hidden shadow-inner">
-      <div className="max-w-7xl mx-auto flex items-center gap-3">
-        <span className="px-2.5 py-1 bg-amber-500 text-slate-950 font-black text-[10px] rounded-lg uppercase tracking-wider shrink-0 shadow-sm">
-          🔥 Today's Menu
-        </span>
+    <div id="todays-menu" className="bg-[#0D2318] text-white py-4 px-4 border-b border-[#1A3D2A]">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="flex h-3 w-3 relative">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+          </span>
+          <span className="text-xs font-black uppercase tracking-wider text-amber-300">
+            TODAY'S LIVE KITCHEN MENU:
+          </span>
+        </div>
 
-        <div className="flex-1 overflow-x-auto scrollbar-none whitespace-nowrap flex items-center gap-6 text-xs text-[#1A261E] font-bold">
+        <div className="flex flex-wrap items-center justify-center md:justify-end gap-3 w-full">
           {activeDishes.map((dish) => (
-            <button
+            <div
               key={dish.id}
-              type="button"
-              onClick={() => openInstantOrder()}
-              className="inline-flex items-center gap-2 hover:text-amber-600 transition cursor-pointer shrink-0"
+              className="bg-[#152E20] border border-[#244E36] px-3.5 py-1.5 rounded-xl flex items-center gap-2 text-xs shadow-sm"
             >
-              <span>{dish.category === 'Veg' ? '🌱' : dish.category === 'Egg' ? '🍳' : '🍗'}</span>
-              <span>{dish.name}:</span>
-              <span className="text-amber-600 font-black">₹{dish.price}</span>
-              <span className="text-slate-300">•</span>
-            </button>
+              <span className="text-amber-400 font-bold">
+                {dish.category === 'Veg' ? '🌱' : dish.category === 'Egg' ? '🍳' : '🍗'} {dish.name}
+              </span>
+              <span className="text-slate-400">|</span>
+              <span className="text-white font-mono font-black text-amber-300">₹{dish.price}</span>
+            </div>
           ))}
         </div>
       </div>
