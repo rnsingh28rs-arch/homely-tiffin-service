@@ -43,15 +43,15 @@ export const ChatBox: React.FC = () => {
       const initialMsg: Message = {
         id: 'msg-init',
         sender: 'bot',
-        text: `Namaste ji! 🙏 Main hoon **Chef Bitey** 👨‍🍳 Bring My Bite ka AI Kitchen Assistant!\n\nAaj kitchen me fresh khana cook ho raha hai. Main aapki kya madad kar sakta hoon?`,
+        text: `Namaste ji! 🙏 Main hoon **Chef Bitey** 👨‍🍳 Bring My Bite (By Shree Foods) ka AI Kitchen Assistant!\n\nZero cooking stress, zero bartan dhone ka jhanjhat! Main aapki kya madad kar sakta hoon?`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         options: [
-          { label: '🍛 Pure Veg Thali (₹80)', action: 'order_veg' },
+          { label: '🍛 Veg Classic Thali (₹80)', action: 'order_veg' },
           { label: '🍳 Egg Delight Thali (₹100)', action: 'order_egg' },
-          { label: '🍗 Chicken Curry Thali (₹120)', action: 'order_chicken' },
+          { label: '🍗 Non-Veg Club (₹120)', action: 'order_chicken' },
           { label: '🔍 Track Order Status', action: 'track' },
-          { label: '📅 30-Day Monthly Plans', action: 'subscriptions' },
-          { label: '💬 Talk on WhatsApp (+91)', action: 'whatsapp' },
+          { label: '📅 Monthly 30-Day Subscriptions', action: 'subscriptions' },
+          { label: '💬 WhatsApp Support (+91)', action: 'whatsapp' },
         ],
       };
       setMessages([initialMsg]);
@@ -71,9 +71,9 @@ export const ChatBox: React.FC = () => {
 
       if (query.includes('menu') || query.includes('rate') || query.includes('khana') || query.includes('thali') || query.includes('veg') || query.includes('egg') || query.includes('chicken')) {
         const dishList = activeDishes.map((d) => `• **${d.name}**: ₹${d.price}\n  _${d.items}_`).join('\n\n');
-        botReplyText = `🍱 **Aaj Ka Menu:**\n\n${dishList}\n\n👉 Niche click karke turant order karein!`;
+        botReplyText = `🍱 **Live Kitchen Rates (No Hidden Taxes):**\n\n${dishList}\n\n👉 Niche click karke turant order book karein!`;
         options = [
-          { label: '⚡ Book Instant Thali', action: 'open_instant_modal' },
+          { label: '⚡ Order Thali', action: 'open_instant_modal' },
           { label: '📅 Monthly Subscriptions', action: 'subscriptions' },
         ];
       } else if (query.includes('track') || query.includes('status') || query.includes('bmb-')) {
@@ -92,7 +92,7 @@ export const ChatBox: React.FC = () => {
             found.status === 'pending'
               ? '🟡 Verification Pending'
               : found.status === 'approved'
-              ? '🟢 Cooking 🍳'
+              ? '🟢 Cooking in Kitchen 🍳'
               : found.status === 'out_for_delivery'
               ? '🚚 Out for Delivery'
               : found.status === 'delivered'
@@ -109,11 +109,11 @@ export const ChatBox: React.FC = () => {
       } else if (query.includes('subscription') || query.includes('monthly') || query.includes('mahina')) {
         botReplyText = `📅 **30-Day Monthly Tiffin Subscriptions:**\n\n🌱 **Pure Veg Plan:** ₹${config.packages?.veg?.monthlyPrice || 2400} / Month\n🍳 **Egg Special Plan:** ₹${config.packages?.egg?.monthlyPrice || 2999} / Month\n🍗 **Chicken Special Plan:** ₹${config.packages?.nonVeg?.monthlyPrice || 3599} / Month`;
         options = [
-          { label: '📝 Register Monthly Plan', action: 'open_reg_modal' },
+          { label: '📝 Subscribe Monthly Plan', action: 'open_reg_modal' },
           { label: '🍛 Order Daily Single Thali', action: 'open_instant_modal' },
         ];
       } else if (query.includes('delivery') || query.includes('time') || query.includes('noida')) {
-        botReplyText = `🚚 **Delivery Areas & Timings:**\n\n⚡ **Greater Noida:** 30 Mins (₹0 Free Delivery)\n🚚 **Noida:** 45 Mins (+₹25 Distance Share)\n\n🍱 **Lunch:** ${config.deliverySlots?.lunchTime || '12:30 PM - 02:00 PM'}\n🌙 **Dinner:** ${config.deliverySlots?.dinnerTime || '07:30 PM - 09:30 PM'}`;
+        botReplyText = `🚚 **Delivery Areas & Timings:**\n\n⚡ **Greater Noida:** 30 Mins (₹0 Free Delivery)\n🚚 **Noida:** 45 Mins (+₹25 Distance Charge)\n\n🍱 **Lunch:** ${config.deliverySlots?.lunchTime || '12:30 PM - 02:00 PM'}\n🌙 **Dinner:** ${config.deliverySlots?.dinnerTime || '07:30 PM - 09:30 PM'}`;
         options = [
           { label: '⚡ Order Now', action: 'open_instant_modal' },
           { label: '💬 Contact Team', action: 'whatsapp' },
@@ -125,14 +125,14 @@ export const ChatBox: React.FC = () => {
         ];
       } else if (query === 'open_instant_modal' || query.startsWith('order_')) {
         openInstantOrder();
-        botReplyText = 'Thali booking form open kar diya gaya hai! 🍱';
+        botReplyText = 'Thali order form open kar diya gaya hai! 🍱';
       } else if (query === 'open_reg_modal') {
         openRegistration();
-        botReplyText = 'Monthly registration form open kar diya gaya hai! 📅';
+        botReplyText = 'Monthly subscription form open kar diya gaya hai! 📅';
       } else {
         botReplyText = `Main aapka sawaal samajh gaya ji! Kya aap **Menu dekhna** chahte hain ya **Order Track** karna chahte hain?`;
         options = [
-          { label: '🍛 Aaj Ka Menu (₹80 / ₹100 / ₹120)', action: 'menu' },
+          { label: '🍛 Live Menu (₹80 / ₹100 / ₹120)', action: 'menu' },
           { label: '🔍 Track Order', action: 'track' },
           { label: '💬 Chat on WhatsApp', action: 'whatsapp' },
         ];
@@ -186,7 +186,7 @@ export const ChatBox: React.FC = () => {
     }
     if (action === 'direct_whatsapp' || action === 'whatsapp') {
       const cleanWa = formatIndianWhatsAppNumber(config.whatsappNumber);
-      window.open(`https://wa.me/${cleanWa}?text=${encodeURIComponent('Namaste Bring My Bite team, I want to inquire about daily meals and tiffin subscriptions.')}`, '_blank');
+      window.open(`https://wa.me/${cleanWa}?text=${encodeURIComponent('Hello Bring My Bite team, I need assistance with meals.')}`, '_blank');
       return;
     }
 
@@ -240,7 +240,7 @@ export const ChatBox: React.FC = () => {
               setIsWaving(false);
             }}
             className="w-16 h-16 rounded-full bg-gradient-to-tr from-[#B45309] via-[#D97706] to-[#F59E0B] text-white flex items-center justify-center text-3xl shadow-2xl hover:scale-110 active:scale-95 transition-all duration-300 border-2 border-amber-300 cursor-pointer"
-            aria-label="Open AI Chef Chat"
+            aria-label="Open Chef Assistant"
           >
             <span className="relative">
               👨‍🍳
@@ -263,7 +263,7 @@ export const ChatBox: React.FC = () => {
                 <div className="flex items-center gap-1.5">
                   <h3 className="text-sm font-black text-white">Chef Bitey</h3>
                   <span className="px-1.5 py-0.2 bg-amber-500/20 text-amber-300 text-[9px] font-black rounded-md uppercase">
-                    AI Kitchen
+                    Shree Foods
                   </span>
                 </div>
                 <p className="text-[10px] text-emerald-300/80 font-medium">Ready to take your order 24/7</p>
@@ -308,7 +308,7 @@ export const ChatBox: React.FC = () => {
                   {msg.orderCard && (
                     <div className="mt-2 p-2 bg-[#0F1A13] border border-emerald-500/40 rounded-xl text-[11px] text-slate-300 space-y-1">
                       <div className="flex justify-between">
-                        <span className="text-slate-400">Total Bill:</span>
+                        <span className="text-slate-400">Total:</span>
                         <span className="font-bold text-amber-300">₹{msg.orderCard.amount}</span>
                       </div>
                       <div className="flex justify-between">
