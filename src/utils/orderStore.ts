@@ -1,6 +1,5 @@
-export type OrderStatus = "pending" | "approved" | "out_for_delivery" | "delivered" | "rejected";
-
 export type CityLocation = "Greater Noida" | "Noida";
+export type OrderStatus = "pending" | "approved" | "out_for_delivery" | "delivered" | "rejected";
 
 export interface OrderItem {
   id: string;
@@ -8,80 +7,53 @@ export interface OrderItem {
   phone: string;
   city: CityLocation;
   address: string;
-  mapLocationUrl?: string;
   mealPlan: string;
-  planType: "Daily" | "Monthly" | "Trial";
-  slot: "Lunch" | "Dinner" | "Both (Lunch & Dinner)";
+  planType: "Daily" | "Monthly";
+  slot: "Lunch" | "Dinner";
   mealAmount: number;
   deliveryCharge: number;
   amount: number;
   estimatedTime: string;
   utrNumber: string;
-  paymentSlip: string;
+  paymentSlip?: string;
   status: OrderStatus;
-  rejectionReason?: string;
   createdAt: string;
-  formattedTimestamp: string; // Exact Date, Time & Seconds
+  timestamp: number;
 }
 
-const ORDER_STORAGE_KEY = "bmb_cloud_orders_database_v4";
-
-export const formatExactTimestamp = (date: Date = new Date()): string => {
-  return date.toLocaleString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true,
-  });
-};
+const ORDERS_STORAGE_KEY = "bmb_orders_clean_queue_v910";
 
 export const getStoredOrders = (): OrderItem[] => {
   try {
-    const data = localStorage.getItem(ORDER_STORAGE_KEY);
+    const data = localStorage.getItem(ORDERS_STORAGE_KEY);
     return data ? JSON.parse(data) : [];
   } catch {
     return [];
   }
 };
 
-export const createOrder = (
-  orderData: Omit<OrderItem, "id" | "status" | "createdAt" | "formattedTimestamp">
-): OrderItem => {
-  const now = new Date();
+export const saveStoredOrders = (orders: OrderItem[]): void => {
+  localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(orders));
+  window.dispatchEvent(new Event("bmb_orders_updated"));
+};
+
+export const createOrder = (orderData: Omit<OrderItem, "id" | "status" | "createdAt" | "timestamp">): OrderItem => {
   const newOrder: OrderItem = {
     ...orderData,
     id: "BMB-" + Math.floor(100000 + Math.random() * 900000),
     status: "pending",
-    createdAt: now.toISOString(),
-    formattedTimestamp: formatExactTimestamp(now),
+    createdAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    timestamp: Date.now(),
   };
 
   const existing = getStoredOrders();
   const updated = [newOrder, ...existing];
-  localStorage.setItem(ORDER_STORAGE_KEY, JSON.stringify(updated));
-  window.dispatchEvent(new Event("bmb_orders_updated"));
+  saveStoredOrders(updated);
   return newOrder;
 };
 
-export const updateOrderStatus = (
-  orderId: string,
-  status: OrderStatus,
-  rejectionReason?: string
-): void => {
+export const updateOrderStatus = (orderId: string, newStatus: OrderStatus): void => {
   const existing = getStoredOrders();
-  const updated = existing.map((ord) => {
-    if (ord.id === orderId) {
-      return {
-        ...ord,
-        status,
-        rejectionReason: status === "rejected" ? rejectionReason : undefined,
-      };
-    }
-    return ord;
-  });
-  localStorage.setItem(ORDER_STORAGE_KEY, JSON.stringify(updated));
-  window.dispatchEvent(new Event("bmb_orders_updated"));
+  const updated = existing.map((ord) => (ord.id === orderId ? { ...ord, status: newStatus } : ord));
+  saveStoredOrders(updated);
 };
