@@ -43,7 +43,7 @@ export const ChatBox: React.FC = () => {
       const initialMsg: Message = {
         id: 'msg-init',
         sender: 'bot',
-        text: `Namaste ji! 🙏 Main hoon **Chef Bitey** 👨‍🍳 Bring My Bite ka AI Kitchen Assistant!\n\nAaj kitchen me fresh khana prepare ho raha hai. Main aapki kya madad kar sakta hoon?`,
+        text: `Namaste ji! 🙏 Main hoon **Chef Bitey** 👨‍🍳 Bring My Bite ka AI Kitchen Assistant!\n\nAaj kitchen me fresh khana cook ho raha hai. Main aapki kya madad kar sakta hoon?`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         options: [
           { label: '🍛 Pure Veg Thali (₹80)', action: 'order_veg' },
@@ -51,7 +51,7 @@ export const ChatBox: React.FC = () => {
           { label: '🍗 Chicken Curry Thali (₹120)', action: 'order_chicken' },
           { label: '🔍 Track Order Status', action: 'track' },
           { label: '📅 30-Day Monthly Plans', action: 'subscriptions' },
-          { label: '💬 WhatsApp Support (+91)', action: 'whatsapp' },
+          { label: '💬 Talk on WhatsApp (+91)', action: 'whatsapp' },
         ],
       };
       setMessages([initialMsg]);
@@ -71,7 +71,7 @@ export const ChatBox: React.FC = () => {
 
       if (query.includes('menu') || query.includes('rate') || query.includes('khana') || query.includes('thali') || query.includes('veg') || query.includes('egg') || query.includes('chicken')) {
         const dishList = activeDishes.map((d) => `• **${d.name}**: ₹${d.price}\n  _${d.items}_`).join('\n\n');
-        botReplyText = `🍱 **Aaj Ka Menu:**\n\n${dishList}\n\n👉 Aap direct order book kar sakte hain!`;
+        botReplyText = `🍱 **Aaj Ka Menu:**\n\n${dishList}\n\n👉 Niche click karke turant order karein!`;
         options = [
           { label: '⚡ Book Instant Thali', action: 'open_instant_modal' },
           { label: '📅 Monthly Subscriptions', action: 'subscriptions' },
@@ -92,9 +92,9 @@ export const ChatBox: React.FC = () => {
             found.status === 'pending'
               ? '🟡 Verification Pending'
               : found.status === 'approved'
-              ? '🟢 Approved & Cooking 🍳'
+              ? '🟢 Cooking 🍳'
               : found.status === 'out_for_delivery'
-              ? '🚚 Out for Delivery to your gate'
+              ? '🚚 Out for Delivery'
               : found.status === 'delivered'
               ? '✅ Delivered'
               : '🔴 Declined'
@@ -104,7 +104,7 @@ export const ChatBox: React.FC = () => {
             { label: '🍛 Order Another Meal', action: 'open_instant_modal' },
           ];
         } else {
-          botReplyText = `🔍 Apna 10-digit **Mobile Number** ya **Order ID (jaise BMB-123456)** type karein.`;
+          botReplyText = `🔍 Apna 10-digit **Mobile Number** ya **Order ID (jaise BMB-123456)** yahan type karein.`;
         }
       } else if (query.includes('subscription') || query.includes('monthly') || query.includes('mahina')) {
         botReplyText = `📅 **30-Day Monthly Tiffin Subscriptions:**\n\n🌱 **Pure Veg Plan:** ₹${config.packages?.veg?.monthlyPrice || 2400} / Month\n🍳 **Egg Special Plan:** ₹${config.packages?.egg?.monthlyPrice || 2999} / Month\n🍗 **Chicken Special Plan:** ₹${config.packages?.nonVeg?.monthlyPrice || 3599} / Month`;
@@ -186,7 +186,7 @@ export const ChatBox: React.FC = () => {
     }
     if (action === 'direct_whatsapp' || action === 'whatsapp') {
       const cleanWa = formatIndianWhatsAppNumber(config.whatsappNumber);
-      window.open(`https://wa.me/${cleanWa}?text=Hello%20Bring%20My%20Bite,%20I%20want%20to%20order%20meals.`, '_blank');
+      window.open(`https://wa.me/${cleanWa}?text=${encodeURIComponent('Namaste Bring My Bite team, I want to inquire about daily meals and tiffin subscriptions.')}`, '_blank');
       return;
     }
 
@@ -272,7 +272,7 @@ export const ChatBox: React.FC = () => {
 
             <div className="flex items-center gap-1">
               <a
-                href={`https://wa.me/${cleanWa}?text=Hello%20Bring%20My%20Bite,%20I%20need%20assistance.`}
+                href={`https://wa.me/${cleanWa}?text=${encodeURIComponent('Hello Bring My Bite team, I need instant assistance with my order.')}`}
                 target="_blank"
                 rel="noreferrer"
                 className="p-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 rounded-xl text-xs font-bold transition flex items-center gap-1"
